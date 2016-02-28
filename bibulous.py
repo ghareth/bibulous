@@ -167,15 +167,16 @@ class Bibdata(object):
                  refresh_extract=False):
         
         '''
-        Arguments
-        ---------
-        filename
-        disable
-        culldata
-        uselocale
-        silent
-        debug
-        refresh_extract      Ignore extracted .bib file and refresh (if 'use_citeextract' option enabled)
+        Parameters 
+        ----------
+        filename        : str
+        disable         : bool
+        culldata        : bool
+        uselocale       : bool
+        silent          : bool
+        debug           : bool
+        refresh_extract : bool
+            Ignore extracted .bib file and refresh (if 'use_citeextract' option enabled)
         '''
         
         self.debug = debug
