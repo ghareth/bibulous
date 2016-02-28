@@ -14,6 +14,7 @@ proceedings = <ed.if_singular(editorlist, edmsg1, edmsg2)>, \textit{<title>}, [v
 techreport = [<au>|<ed.if_singular(editorlist, edmsg1, edmsg2)>|<organization>|<institution>|], \enquote{<title>,} <institution>, <number> (<year>).[ <note>]
 website = \url{[<url>|<doi>]}
 #website = \href{[<url>|<doi>]}{[<url>|<doi>]}
+webpage = website
 
 SPECIAL-TEMPLATES:
 sortkey = <citenum.zfill(3)>              ## order the reference list in the same order as the citations were given in

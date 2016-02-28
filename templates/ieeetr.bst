@@ -13,6 +13,7 @@ proceedings = <ed.if_singular(editorlist, edmsg1, edmsg2)>, ed., \textit{<title>
 techreport = <au>, \enquote{<title>,} Tech.\ Rep.\ <number>, [<institution>, |<organization>, |]<publisher>, [<month.monthabbrev()> ]<year>.[ <note>]
 unpublished = <au>, \enquote{<title>.}[ <note>,] [<month.monthabbrev()> ]<year>.
 website = \url{[<url>|<doi>]}
+webpage = website
 
 
 SPECIAL-TEMPLATES:

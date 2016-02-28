@@ -11,6 +11,7 @@ misc = [<au>, ][\enquote{<title>}][ (<organization>, <year>)| (<year>)].[ <note>
 phdthesis = <au>, thesis, <school> (<year>).
 techreport = [<au>|<ed>|<organization>|<institution>], \enquote{<title>} ([Tech. Rep. <number>, ]<institution>, <address>, <year>).
 website = [<title>, ]\url{[<url>|<doi>]}
+webpage = website
 
 #inproceedings = <au>, \enquote{<title>,} in \textit{<booktitle>}[, <ed>][, in <series>][ \textbf{<volume>}]...
 #        [, pp.~<startpage>--<endpage>|, p.~<startpage>|, <eid>] (<year>).[ <note>]

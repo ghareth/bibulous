@@ -13,6 +13,7 @@ phdthesis = <au>, \enquote{<title>,} Ph.D. dissertation (<school>, <year>).[ <no
 proceedings = <ed.if_singular(editorlist, edmsg1, edmsg2)>, \textit{<title>}, [vol.~<volume>][, <edition.ordinal()>~ed.] (<year>).[ <note>]
 techreport = [<au>, |<ed.if_singular(editorlist, edmsg1, edmsg2)>, ]``<title>,'' <institution>, Tech.\ Report <number> (<year>).[ <note>]
 website = \url{[<url>|<doi>]}
+webpage = website
 ##article = <au>, \enquote{\href{[<url>|<doi>]}{<title>},} <journal> \textbf{<volume>}, [<startpage>--<endpage>|<eid>|] (<year>).[ <note>][ {\makeopenbracket}<url>{\makeclosebracket}| {\makeopenbracket}<doi>{\makeclosebracket}]
 ##book = [<au>|], \textit{<title>}, [<edition.ordinal()>~ed., ][vol.~<volume>, ](<publisher>, <year>)[ Chap.~<chapter>][, pp.~<startpage>--<endpage>].[ <note>]
 ##inproceedings = <au>, \enquote{<title>,} [in \textit{<booktitle>}, <ed.if_singular(editorlist, edmsg1, edmsg2)>, <series> |in \textit{<booktitle>}, <series> |in \textit{<booktitle>}, ]\textbf{<volume>}[, pp.~<startpage>--<endpage>|, <eid>] (<year>).[ <note>]

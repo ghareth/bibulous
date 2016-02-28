@@ -6,6 +6,7 @@ database = <au> (<year>) <title>.[ Available at \url{<url>}[, accessed <access_d
 inproceedings = <au> (<year>) <title>. <booktitle>[, <null.if_singular(editorlist, edmsg1, edmsg2)>~<ed>] (<publisher>, <address>)[, pp~<startpage>--<endpage>|p~<startpage>|<eid>|].[ <note>]
 techreport = <au> (<year>) <title>. Tech.\ Rep.\ <number> ([<institution>|<organization>|], <address>).[ <note>]
 website = \url{[<url>|<doi>]}
+webpage = website
 
 
 SPECIAL-TEMPLATES:

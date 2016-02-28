@@ -22,6 +22,7 @@ proceedings = <ed>, \textit{<title>}, [vol.~<volume>][, <edition.ordinal()>~ed.]
 techreport = [<au>|<ed>|<organization>|<institution>|], \enquote{<title>,} <institution>, Tech. Rep. <number> (<year>).[ <note>]
 website = \url{[<url>|<doi>]}
 #website = \href{[<url>|<doi>]}{[<url>|<doi>]}
+webpage = website
 
 SPECIAL-TEMPLATES:
 sortkey = <citenum.zfill(3)>              ## order the reference list in the same order as the citations were given in
