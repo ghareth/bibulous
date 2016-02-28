@@ -428,7 +428,7 @@ class Bibdata(object):
             ## Ignore empty and comment lines.
             if not line: continue
             if line.strip().startswith('%'): continue
-            if line.startswith('}'):
+            if line.startswith('}') and entry_brace_level == 1:
                 ## If a line *starts* with a closing brace, then assume the intent is to close the current entry.
                 entry_brace_level = 0
                 self.parse_bibentry(entrystr, entrytype)       ## close out the entry
