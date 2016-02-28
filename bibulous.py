@@ -3760,6 +3760,12 @@ def latex_to_utf8(s):
     trans = {r'\$':'$', r'\%':'%', r'\_':'_', r'\&':'&', r'\#':'#', r'!`':'¡', r'?`':'¿'}
     for c in trans:
         if c in s: s = s.replace(c, trans[c])
+        
+    ## Second, some more replacements.
+    trans = {r'{\textquoteright}':"'", r"{\textquotedblleft}":'"',r"{\textquotedblright}":'"',\
+             r'{\textendash}':"-"\}
+    for c in trans:
+        if c in s: s = s.replace(c, trans[c])
 
     ## If there are any double backslashes, place some braces around them to prevent something like "\\aa" from getting
     ## interpreted as a backslash plus "\aa". This makes the string easier to parse and does no harm.
