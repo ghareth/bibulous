@@ -163,7 +163,21 @@ class Bibdata(object):
     bibdata.write_bblfile()
     '''
 
-    def __init__(self, filename, disable=None, culldata=True, uselocale=None, silent=False, debug=False):
+    def __init__(self, filename, disable=None, culldata=True, uselocale=None, silent=False, debug=False,\
+                 refresh_extract=False):
+        
+        '''
+        Arguments
+        ---------
+        filename
+        disable
+        culldata
+        uselocale
+        silent
+        debug
+        refresh_extract      Ignore extracted .bib file and refresh (if 'use_citeextract' option enabled)
+        '''
+        
         self.debug = debug
         self.abbrevs = {'jan':'1', 'feb':'2', 'mar':'3', 'apr':'4', 'may':'5', 'jun':'6',
                         'jul':'7', 'aug':'8', 'sep':'9', 'oct':'10', 'nov':'11', 'dec':'12'}
@@ -185,6 +199,7 @@ class Bibdata(object):
         self.uniquify_vars = {}     ## dict containing all variables calling the "uniquify" operator
         self.keylist = []           ## "keylist" is just a temporary holding place for the citations
         self.auxfile_list = []      ## a list of *.aux files, for use when citations are inside nested files
+
 
         if (uselocale == None):
             self.locale = locale.setlocale(locale.LC_ALL,'')    ## set the locale to the user's default
@@ -331,7 +346,8 @@ class Bibdata(object):
 
         ## Next, get the list of entrykeys in the database file(s), and compare them against the list of citation keys.
         if self.filedict['bib']:
-            if self.citedict and self.options['use_citeextract'] and os.path.exists(self.filedict['extract']):
+            if self.citedict and self.options['use_citeextract'] and os.path.exists(self.filedict['extract'])\
+               and not refresh_extract:
                 ## Check if the extract file is complete by reading in the database keys and checking against the
                 ## citation list.
                 self.parse_only_entrykeys = True
@@ -350,13 +366,13 @@ class Bibdata(object):
 
             ## If the current database is complete, then just go ahead and use it. If not, then parse the main database
             ## file(s).
-            if is_complete:
-                self.parse_bibfile(self.filedict['extract'])
+            if is_complete and not refresh_extract:
+                self.parse_bibfile(self.filedict['extract'])  ## Parse extracted .bib file
             else:
                 if self.culldata:
                     self.searchkeys = self.citedict.keys()
                 for f in self.filedict['bib']:
-                    self.parse_bibfile(f)
+                    self.parse_bibfile(f)                     ## Parse full .bib file
                 if self.culldata:
                     self.add_crossrefs_to_searchkeys()
                 if ('*' in self.citedict):
