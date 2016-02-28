@@ -164,12 +164,12 @@ class Bibdata(object):
     '''
 
     def __init__(self, filename, disable=None, culldata=True, uselocale=None, silent=False, debug=False,\
-                 refresh_extract=False):
+                 refresh_extract=False, style = ""):
         
         '''
         Parameters 
         ----------
-        filename        : str
+        filename        : str or list or tuple
         disable         : bool
         culldata        : bool
         uselocale       : bool
@@ -177,6 +177,8 @@ class Bibdata(object):
         debug           : bool
         refresh_extract : bool
             Ignore extracted .bib file and refresh (if 'use_citeextract' option enabled)
+        style           : str
+            Handle different style template file overriding style template in .aux file
         '''
         
         self.debug = debug
@@ -200,6 +202,7 @@ class Bibdata(object):
         self.uniquify_vars = {}     ## dict containing all variables calling the "uniquify" operator
         self.keylist = []           ## "keylist" is just a temporary holding place for the citations
         self.auxfile_list = []      ## a list of *.aux files, for use when citations are inside nested files
+        self.style_override = style ## this style will override style file derived from filename 
 
 
         if (uselocale == None):
@@ -1658,7 +1661,7 @@ class Bibdata(object):
 
         Parameters
         ----------
-        filename : str
+        filename : str or list or tuple
             The "auxiliary" file, containing citation info, TOC info, etc.
 
         Returns
@@ -1677,7 +1680,8 @@ class Bibdata(object):
 
         bibres = None
         bstres = None
-
+        
+                  
         if isinstance(filename, basestring) and filename.endswith('.aux'):
             auxfile = os.path.normpath(os.path.abspath(filename))
             path = os.path.normpath(os.path.dirname(auxfile))
@@ -1770,17 +1774,20 @@ class Bibdata(object):
                 elif f.endswith('.bbl'): bblfile = os.path.normpath(f)
                 elif f.endswith('.tex'): texfile = os.path.normpath(f)
 
-        if not bblfile:
+        if not bblfile and auxfile:
             bblfile = auxfile[:-4] + '.bbl'
         if not texfile and auxfile:
             texfile = auxfile[:-4] + '.tex'
-        if not extractfile:
+        if not extractfile and auxfile:
             extractfile = auxfile[:-4] + '-extract.bib'
 
         ## Now that we have the filenames, build the dictionary of BibTeX-related files.
         self.filedict['bib'] = bibfiles
-        self.filedict['bst'] = bstfiles
-        self.filedict['tex'] = texfile
+        if self.style_override:            
+            self.filedict['bst'] = [self.style_override]
+        else:
+            self.filedict['bst'] = bstfiles
+        self.filedict['tex'] = texfile        
         self.filedict['aux'] = auxfile
         self.filedict['bbl'] = bblfile
         self.filedict['extract'] = extractfile
