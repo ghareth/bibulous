@@ -3763,7 +3763,7 @@ def latex_to_utf8(s):
         
     ## Second, some more replacements.
     trans = {r'{\textquoteright}':"'", r"{\textquotedblleft}":'"',r"{\textquotedblright}":'"',\
-             r'{\textendash}':"-"\}
+             r'{\textendash}':"-"}
     for c in trans:
         if c in s: s = s.replace(c, trans[c])
 
