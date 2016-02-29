@@ -21,7 +21,7 @@ webpage = website
 
 SPECIAL-TEMPLATES:
 sortkey = <citekey>                       ## order the reference list by "citekey"
-citelabel = <citekey>                     ## the type of label to use for the reference list items
+citelabel = <citekey>()                    ## the type of label to use for the reference list items
 
 
 OPTIONS:
