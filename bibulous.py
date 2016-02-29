@@ -425,12 +425,17 @@ class Bibdata(object):
         for line in filehandle:
             self.i += 1
 
-            #Workaround for bug in Papers3 that includes a stray backslash when using ampersands      
-            line = line.replace(r'\{\&}',r'{\&}')
-
             ## Ignore empty and comment lines.
             if not line: continue
             if line.strip().startswith('%'): continue
+            
+            #Workaround for bug in Papers3 that includes a stray backslash when using ampersands      
+            line = line.replace(r'\{\&}',r'{\&}')
+        
+            #Workaround for bug in Papers3 that exports BibTeX with non-escaped percentage signs
+            percent = re.compile (r'(?<!\\)%', re.UNICODE)
+            line = re.sub(percent, r"\%", line)               
+            
             if line.startswith('}') and entry_brace_level == 1:
                 ## If a line *starts* with a closing brace, then assume the intent is to close the current entry.
                 entry_brace_level = 0
