@@ -4914,9 +4914,9 @@ if (__name__ == '__main__'):
         files = arg_auxfile
     else:
         ## Use the test example input.
-        arg_bibfile = './test/test1.bib'
-        arg_auxfile = './test/test1.aux'
-        arg_bstfile = './test/test1.bst'
+        arg_bibfile = './test/thiruv.bib'
+        arg_auxfile = './test/thiruv.aux'
+        arg_bstfile = './templates/default.bst'
         files = [arg_bibfile, arg_auxfile, arg_bstfile]
 
     main_bibdata = Bibdata(files, uselocale=user_locale, debug=False)
