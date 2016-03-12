@@ -127,7 +127,7 @@ def run_test4():
     ## the default string encoding here is Unicode, we have to re-encode it manually. Later below, we will try some
     ## other locale settings.
     if (os.name == 'posix'):
-        thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF8'.encode('ascii','replace'))
+        thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF-8'.encode('ascii','replace'))
     elif (os.name == 'nt'):
         thislocale = locale.setlocale(locale.LC_ALL,'usa_usa'.encode('ascii','replace'))
 
@@ -266,7 +266,7 @@ def run_test7():
     ## the default string encoding here is Unicode, we have to re-encode it manually. Later below, we will try some
     ## other locale settings.
     if (os.name == 'posix'):
-        thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF8'.encode('ascii','replace'))
+        thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF-8'.encode('ascii','replace'))
     elif (os.name == 'nt'):
         thislocale = locale.setlocale(locale.LC_ALL,'usa_usa'.encode('ascii','replace'))
 
