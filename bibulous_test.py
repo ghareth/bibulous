@@ -187,8 +187,8 @@ def run_test4():
                 filehandle.write(line)
         filehandle.close()
 
-        bibobj = Bibdata(auxfile, disable=[9], silent=(i>0))
-        bibobj.locale = thislocale
+        bibobj = Bibdata(auxfile, disable=[9], uselocale=thislocale, silent=(i>0))
+        
         bibobj.bibdata['preamble'] = '\n\n%% SETTING PRESORTKEY = ' + presortkey
         bibobj.bibdata['preamble'] += '\n%% SETTING SORTKEY = ' + sortkey
         #bibobj.debug = True     ## turn on debugging for citekey printing
@@ -298,8 +298,7 @@ def run_test7():
                 filehandle.write(line)
         filehandle.close()
 
-        bibobj = Bibdata(auxfile, disable=[9], silent=(i>0))
-        bibobj.locale = thislocale
+        bibobj = Bibdata(auxfile, disable=[9], uselocale=thislocale, silent=(i>0))
         bibobj.bibdata['preamble'] = '\n\n%% SETTING CITELABEL = ' + citelabel
         #bibobj.debug = True     ## turn on debugging for citekey printing
 
