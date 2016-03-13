@@ -671,7 +671,7 @@ B. Busta and R. Weinberg, ``\href{http://dx.doi.org/10.1108/02686909810222375}{U
 \bibitem[10299]{rHEL94b}
 P. Hellekalek, M. Mayer, and A. Weingartner, ``Implementation of algorithms for {IMP}-polynomials,'' Research Institute for Software Technology, University of Salzburg, Austria, Tech.\ Report ??? (1994).
 \bibitem[103]{Hill:1998:FDP}
-T. P. Hill, ``\href{http://people.math.gatech.edu/~hill/publications/PAPER%20PDFS/TheFirstDigitPhenomenonAmericanScientist1996.pdf; http://www.math.gatech.edu/~hill/publications/cv.dir/1st-dig.pdf}{The First Digit Phenomenon},'' \textit{American Scientist} \textbf{86}: 358--363 (1998).
+T. P. Hill, ``\href{http://people.math.gatech.edu/~hill/publications/PAPER\%20PDFS/TheFirstDigitPhenomenonAmericanScientist1996.pdf; http://www.math.gatech.edu/~hill/publications/cv.dir/1st-dig.pdf}{The First Digit Phenomenon},'' \textit{American Scientist} \textbf{86}: 358--363 (1998).
 \bibitem[1030]{Shakespeare:1998:L}
 W. Shakespeare, \textit{Locrine}, vol.~1548 (Project Gutenberg, 1998).
 \bibitem[10300]{Doyle:2001:NDL}
@@ -3209,7 +3209,7 @@ H. Kang and B. Shneiderman, ``MediaFinder: An Interface for Dynamic Personal Med
 \bibitem[11466]{Paul:1989:CMC}
 K. Paul, \textit{Chairing a meeting with confidence: an easy guide to rules and procedure} (Self-Counsel Press, 1989).
 \bibitem[11467]{Taylor:2002:STD}
-R. N. Taylor, D. J. McEntegart, and E. C. Stillman, ``\href{http://www.diahome.org/DIAHome/resources/content.aspx?type=eopdf&file=%2Fproductfiles%2F8357%2Fdiaj_11524.pdf????}{Statistical techniques to detect fraud and other data irregularities in clinical questionnaire data},'' \textit{Drug Information Journal} \textbf{36}: 115--125 (2002).
+R. N. Taylor, D. J. McEntegart, and E. C. Stillman, ``\href{http://www.diahome.org/DIAHome/resources/content.aspx?type=eopdf&file=\%2Fproductfiles\%2F8357\%2Fdiaj_11524.pdf????}{Statistical techniques to detect fraud and other data irregularities in clinical questionnaire data},'' \textit{Drug Information Journal} \textbf{36}: 115--125 (2002).
 \bibitem[11468]{Kiusalaas:2010:NMEb}
 J. Kiusalaas, \textit{Numerical methods in engineering with {Python}} (Cambridge University Press, 2010).
 \bibitem[11469]{LeiSho89}
@@ -3457,7 +3457,7 @@ T. J. Boardman, ``The statistician who changed the world: {W. Edwards Deming}, 1
 \bibitem[11580]{Cole:ParallelSchedulingI}
 R. C. Vishkin, ``Approximate Parallel Scheduling, Part {I}: he Basic Technique with Applications to Optimal Parallel List Ranking in Logarithmic Time,'' \textit{SIAM Journal on Computing} \textbf{17}: 128--142 (1988).
 \bibitem[11581]{Benford:1938:LAN}
-F. Benford, ``\href{http://links.jstor.org/sici?sici=0003-049X%2819380331%2978%3A4%3C551%3ATLOAN%3E2.0.CO%3B2-G}{The Law of Anomalous Numbers},'' \textit{Proceedings of the American Philosophical Society} \textbf{78}: 551--572 (1938). See comments about Benford's biased rounding practices \cite{Diaconis:1979:RP}.
+F. Benford, ``\href{http://links.jstor.org/sici?sici=0003-049X\%2819380331\%2978\%3A4\%3C551\%3ATLOAN\%3E2.0.CO\%3B2-G}{The Law of Anomalous Numbers},'' \textit{Proceedings of the American Philosophical Society} \textbf{78}: 551--572 (1938). See comments about Benford's biased rounding practices \cite{Diaconis:1979:RP}.
 \bibitem[11582]{Rovine:2004:PB}
 M. J. Rovine and D. R. Anderson, ``{Peirce and Bowditch},'' \textit{The American Statistician} \textbf{58}: 232--236 (2004).
 \bibitem[11583]{Egghe:2006:DHL}
@@ -3525,7 +3525,7 @@ Z. H. Amin, ``Tests for the Validity of the Assumption that the Underlying Distr
 \bibitem[11610]{Zhou:2000:OSC}
 X.-H. Zhou and S. Gao, ``One-Sided Confidence Intervals for Means of Positively Skewed Distributions,'' \textit{The American Statistician} \textbf{54}: 100--?? (2000).
 \bibitem[11612]{Bradford:1934:SIS}
-S. C. Bradford, ``\href{http://en.wikipedia.org/wiki/Bradford%27s_law}{Sources of Information on Specific Subjects},'' \textit{Engineering: An Illustrated Weekly Journal (London)} \textbf{137}: 85--86 (1934). This paper (reprinted in \cite{Bradford:1985:SIS}) introduces an observation later known as Bradford's Law: there are exponentially-diminishing returns of extending a search for references in journals.
+S. C. Bradford, ``\href{http://en.wikipedia.org/wiki/Bradford\%27s_law}{Sources of Information on Specific Subjects},'' \textit{Engineering: An Illustrated Weekly Journal (London)} \textbf{137}: 85--86 (1934). This paper (reprinted in \cite{Bradford:1985:SIS}) introduces an observation later known as Bradford's Law: there are exponentially-diminishing returns of extending a search for references in journals.
 \bibitem[11613]{rMUR70a}
 H. F. Murry, ``A Natural Approach for Generating Natural Random Variables,'' \textit{{IEEE} Transactions on Computers} \textbf{C-19}: 1210--1213 (1970).
 \bibitem[11614]{batesSearchTactics}
@@ -5539,7 +5539,7 @@ M. S. Watanabe, ``\href{http://link.aps.org/doi/10.1103/PhysRevE.53.4187}{{Zipf}
 \bibitem[172]{Hoffman:2000:SE}
 P. F. Hoffman and D. P. Schrag, ``Snowball {Earth},'' \textit{Scientific American} \textbf{282}: 68--?? (2000).
 \bibitem[1720]{Karger:LDPC-Journal}
-J. Feldman, D. Karger, and M. Wainwright, ``\href{http://ieeexplore.ieee.org/iel5/18/30405/01397933.pdf?isNumber=30405&prod=JNL&arnumber=1397933&arSt=+954&ared=+972&arauthor=+Feldman%2C+J.%3B++Wainwright%2C+M.J.%3B++Karger%2C+D.R.}{Using Linear Programming to Decode Linear Codes},'' \textit{IEEE Transactions on Information Theory} \textbf{51}: 954--972 (2005).
+J. Feldman, D. Karger, and M. Wainwright, ``\href{http://ieeexplore.ieee.org/iel5/18/30405/01397933.pdf?isNumber=30405&prod=JNL&arnumber=1397933&arSt=+954&ared=+972&arauthor=+Feldman\%2C+J.\%3B++Wainwright\%2C+M.J.\%3B++Karger\%2C+D.R.}{Using Linear Programming to Decode Linear Codes},'' \textit{IEEE Transactions on Information Theory} \textbf{51}: 954--972 (2005).
 \bibitem[1721]{Summerfield:2008:RGP}
 M. Summerfield, \textit{Rapid {GUI} programming with {Python} and {Qt}: the definitive guide to {PyQt} programming} (Pren{\-}tice-Hall, 2008).
 \bibitem[1722]{Devore:2002:BRF}
@@ -6485,7 +6485,7 @@ S. Simpson, ``Climate Change: {Kyoto Protocol}: Debit or Credit? Whether {CO}$_2
 \bibitem[2132]{FFKRRV91}
 A. Fiat, D. Foster, H. Karloff, Y. Rabani, Y. Ravid, and S. Vishwanathan, ``Competitive algorithms for layered graph traversal,'' in \textit{Proc. 32ndSymp. Foundations of Computer Science (FOCS)}, pp.~288--297 (1991). 
 \bibitem[2133]{Humenberger:2008:EBB}
-H. Humenberger, ``\href{http://www.oemg.ac.at/DK/Didaktikhefte/2008%2520Band%252041/VortragHumenberger.pdf}{{Eine elementarmathematische Begr{\"u}ndung des Benford-Gesetzes}. ({German}) [{An} elementary mathematical derivation of the {Benford Law}]},'' \textit{Der Mathematikunterricht} \textbf{54}: 24--34 (2008).
+H. Humenberger, ``\href{http://www.oemg.ac.at/DK/Didaktikhefte/2008\%2520Band\%252041/VortragHumenberger.pdf}{{Eine elementarmathematische Begr{\"u}ndung des Benford-Gesetzes}. ({German}) [{An} elementary mathematical derivation of the {Benford Law}]},'' \textit{Der Mathematikunterricht} \textbf{54}: 24--34 (2008).
 \bibitem[2134]{Briand:2000:BRE}
 M. Briand, ``Book Review: {{\em Exceptional C++}},'' \textit{C/C++ Users Journal} \textbf{18}: 73--?? (2000).
 \bibitem[2135]{ChOoNg93}
@@ -7355,7 +7355,7 @@ J. Leydold, ``Automatic Sampling with the Ratio-of-Uniform Method,'' \textit{ACM
 \bibitem[2525]{BaGuNS99}
 A. Bar-Noy, S. Guha, J. Naor, and B. Scieber, ``Approximating the throughput of multiple machines in real-time scheduling,'' in \textit{Proc. 31stSymp. Theory of Computing (STOC)}, pp.~622--631 (1999). 
 \bibitem[2526]{Decker:2007:GPC}
-E. H. Decker, A. J. Kerkhoff, and M. E. Moses, ``\href{http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0000934}{Global Patterns of City Size Distributions and Their Fundamental Drivers},'' \textit{PLoS One} \textbf{2}: e934 (2007).
+E. H. Decker, A. J. Kerkhoff, and M. E. Moses, ``\href{http://www.plosone.org/article/info\%3Adoi\%2F10.1371\%2Fjournal.pone.0000934}{Global Patterns of City Size Distributions and Their Fundamental Drivers},'' \textit{PLoS One} \textbf{2}: e934 (2007).
 \bibitem[2527]{Robinson:2007:DEA}
 T. J. Robinson, ``Design of Experiments for Agriculture and the Natural Sciences,'' \textit{The American Statistician} \textbf{61}: 275 (2007).
 \bibitem[2528]{Kulinskaya:2010:VSD}
@@ -7677,7 +7677,7 @@ F. Luccio and L. Pagli, ``On the upper bound on the rotation distance of binary 
 \bibitem[2673]{Stevenson:1999:WB}
 R. L. Stevenson, \textit{The Wrong Box}, vol.~1585 (Project Gutenberg, 1999).
 \bibitem[2674]{Stanley:2010:CIB}
-T. D. Stanley, S. B. Jarrell, and H. Doucouliagos, ``Could It Be Better to Discard 90% of the Data? {A} Statistical Paradox,'' \textit{The American Statistician} \textbf{64}: 70--77 (2010).
+T. D. Stanley, S. B. Jarrell, and H. Doucouliagos, ``Could It Be Better to Discard 90\% of the Data? {A} Statistical Paradox,'' \textit{The American Statistician} \textbf{64}: 70--77 (2010).
 \bibitem[2675]{Anonymous:1999:CSA}
 Anonymous, \textit{Cromwell, Shakespeare Apocrypha}, vol.~1736 (Project Gutenberg, 1999).
 \bibitem[2676]{Stevenson:1996:VL}
@@ -8659,7 +8659,7 @@ P. Brinkmann, ``{Gumbie}: {A} {GUI} Generator For {Jython},'' \textit{Dr. Dobb's
 \bibitem[3120]{Bronte:1997:P}
 C. Bront{\"e}, \textit{The Professor}, vol.~1028 (Project Gutenberg, 1997).
 \bibitem[3121]{Logan:1978:FDP}
-J. L. Logan and S. A. Goudsmit, ``\href{http://links.jstor.org/sici?sici=0003-049X(19780818)122%3A4%3C193%3ATFDP%3E2.0.CO%3B2-C; http://www.jstor.org/stable/986530}{The First Digit Phenomenon},'' \textit{Proceedings of the American Philosophical Society} \textbf{122}: 193--197 (1978). This paper contains derivations of both Stigler's Law and Benford's Law, and receives strong criticism in \cite{Raimi:1985:FDP}. This paper contains an important historical note that is recorded in entry \cite{Benford:1938:LAN}.
+J. L. Logan and S. A. Goudsmit, ``\href{http://links.jstor.org/sici?sici=0003-049X(19780818)122\%3A4\%3C193\%3ATFDP\%3E2.0.CO\%3B2-C; http://www.jstor.org/stable/986530}{The First Digit Phenomenon},'' \textit{Proceedings of the American Philosophical Society} \textbf{122}: 193--197 (1978). This paper contains derivations of both Stigler's Law and Benford's Law, and receives strong criticism in \cite{Raimi:1985:FDP}. This paper contains an important historical note that is recorded in entry \cite{Benford:1938:LAN}.
 \bibitem[3122]{Skakespeare:1999:MND}
 W. Skakespeare, \textit{A Midsummer Night's Dream}, vol.~1778 (Project Gutenberg, 1999).
 \bibitem[3123]{Seiden97A}
@@ -12799,7 +12799,7 @@ D. E. Knuth and S. Levy, \textit{The {CWEB} System of Structured Documentation, 
 \bibitem[4972]{Saw:1984:CIE}
 J. G. Saw, M. C. K. Yang, and T. C. Mo, ``{Chebyshev} inequality with estimated mean and variance,'' \textit{The American Statistician} \textbf{38}: 130--132 (1984). See correction \cite{Saw:1988:CCI}.
 \bibitem[4973]{Sottili:2012:BLT}
-G. Sottili, D. M. Palladino, B. Giaccio, and P. Messina, ``\href{http://link.springer.com/article/10.1007%2Fs11004-012-9398-1}{{Benford's Law} in Time Series Analysis of Seismic Clusters},'' \textit{Mathematical Geosciences} \textbf{44}: 619--634 (2012).
+G. Sottili, D. M. Palladino, B. Giaccio, and P. Messina, ``\href{http://link.springer.com/article/10.1007\%2Fs11004-012-9398-1}{{Benford's Law} in Time Series Analysis of Seismic Clusters},'' \textit{Mathematical Geosciences} \textbf{44}: 619--634 (2012).
 \bibitem[4974]{Karp:Reliability}
 R. M. Karp and M. G. Luby, ``Monte Carlo Algorithms for Planar Multiterminal Network Reliability Problems,'' \textit{Journal of Complexity} \textbf{1}: 45--64 (1985).
 \bibitem[4975]{AFIPS:1975:SUJ}
@@ -13917,7 +13917,7 @@ H. Schildt, \textit{The Annotated {ANSI C} Standard: American National Standard 
 \bibitem[5477]{Martindale:2001:SOW}
 D. Martindale and P. H. Gleick, ``Safeguarding Our Water: How We Can Do It,'' \textit{Scientific American} \textbf{284}: 52--55 (2001).
 \bibitem[5478]{Eliahou:2012:MDP}
-S. Eliahou, B. Mass{\'e}, and D. Schneider, ``\href{http://link.springer.com/article/10.1007%2Fs10474-012-0244-1}{On the mantissa distribution of powers of natural and prime numbers},'' \textit{Acta Mathematica Hungarica} \textbf{??}: 1--5 (2012).
+S. Eliahou, B. Mass{\'e}, and D. Schneider, ``\href{http://link.springer.com/article/10.1007\%2Fs10474-012-0244-1}{On the mantissa distribution of powers of natural and prime numbers},'' \textit{Acta Mathematica Hungarica} \textbf{??}: 1--5 (2012).
 \bibitem[5479]{Xu92}
 J. Xu, ``Online multiversion database concurrency control,'' \textit{Acta Inform.} \textbf{29}: 121--160 (1992).
 \bibitem[548]{Collins:2001:GSB}
@@ -14577,7 +14577,7 @@ R. H. {Eckhouse, Jr.} and L. R. Morris, \textit{Minicomputer systems: organizati
 \bibitem[5772]{Adobe:1988:DPS}
 Adobe Systems Incorporated, \textit{The Display {\POSTSCRIPT} System Reference},  (Adobe Systems Incorporated, 1988).
 \bibitem[5773]{Frey:DEM89}
-D. Frey and R. Adams, \textit{\verb|!%@|:: {A} Directory of Electronic Mail Addressing and Networks} (O'Reilly \& {Associates, Inc.}, 1989).
+D. Frey and R. Adams, \textit{\verb|!\%@|:: {A} Directory of Electronic Mail Addressing and Networks} (O'Reilly \& {Associates, Inc.}, 1989).
 \bibitem[5774]{rDEN94a}
 L.-Y. Deng, K. H. Chan, and Y. Yuan, ``Design and Implementation of Random Number Generators for Multiprocessor Systems,'' \textit{International Journal of Modeling and Simulation} \textbf{14}: 185--191 (1994).
 \bibitem[5775]{Nigrini:1997:DAT}
@@ -15031,7 +15031,7 @@ B. Tarkington, \textit{Penrod and Sam}, vol.~1158 (Project Gutenberg, 1998).
 \bibitem[5980]{Hunter:DCC81}
 R. Hunter, \textit{The Design and Construction of Compilers} (Wiley, 1981).
 \bibitem[5981]{Nigrini:2007:BLA}
-M. J. Nigrini and S. J. Miller, ``\href{http://link.springer.com/article/10.1007%2Fs11004-007-9109-5; http://www.springerlink.com/content/m2274ng70435u3x6/}{{Benford's Law} Applied to Hydrology Data --- Results and Relevance to Other Geophysical Data},'' \textit{Mathematical Geology} \textbf{39}: 469--490 (2007).
+M. J. Nigrini and S. J. Miller, ``\href{http://link.springer.com/article/10.1007\%2Fs11004-007-9109-5; http://www.springerlink.com/content/m2274ng70435u3x6/}{{Benford's Law} Applied to Hydrology Data --- Results and Relevance to Other Geophysical Data},'' \textit{Mathematical Geology} \textbf{39}: 469--490 (2007).
 \bibitem[5982]{Gallivan:PAM90}
 K. A. Gallivan, M. T. Heath, E. Ng, J. M. Ortega, B. W. Peyton, R. J. Plemmons, C. H. Romine, A. H. Sameh, and R. G. Voigt, \textit{Parallel Algorithms for Matrix Computations} (Society for Industrial and Applied Mathematics, 1990).
 \bibitem[5983]{Goossens:1999:LWC}
@@ -17639,7 +17639,7 @@ S. Karin and N. P. Smith, \textit{The Supercomputer Era} (Harcourt Brace Jovanov
 \bibitem[712]{Ariosto:1996:OF}
 L. Ariosto, \textit{Orlando Furioso}, vol.~615 (Project Gutenberg, 1996).
 \bibitem[7120]{Balaz:2010:BLD}
-V. Bal{\'a}{\v{z}}, K. Nagasaka, and O. Strauch, ``\href{http://link.springer.com/article/10.1134%2FS0001434610090178}{{Benford}'s law and distribution functions of sequences in $ (0, 1) $},'' \textit{Mathematical Notes of the {Academy of Sciences of the USSR = Matematicheskie Zametki}} \textbf{88}: 449--463 (2010).
+V. Bal{\'a}{\v{z}}, K. Nagasaka, and O. Strauch, ``\href{http://link.springer.com/article/10.1134\%2FS0001434610090178}{{Benford}'s law and distribution functions of sequences in $ (0, 1) $},'' \textit{Mathematical Notes of the {Academy of Sciences of the USSR = Matematicheskie Zametki}} \textbf{88}: 449--463 (2010).
 \bibitem[7121]{Anonymous:1995:ATMa}
 Anonymous, ``Accent on Teaching Materials,'' \textit{The American Statistician} \textbf{49}: 62--?? (1995).
 \bibitem[7122]{Anonymous:1995:ATMb}
@@ -19035,7 +19035,7 @@ M. Fushimi, ``Increasing the Orders of Equidistribution of the Leading Bits of t
 \bibitem[7753]{Bhandarkar:1996:AIA}
 D. P. Bhandarkar, \textit{{Alpha} implementations and architecture: complete reference and guide} (Digital Press, 1996).
 \bibitem[7754]{Varian:1972:LEB}
-H. R. Varian, ``\href{http://links.jstor.org/sici?sici=0003-1305%28197206%2926%3A3%3C62%3ALTTE%3E2.0.CO%3B2-Q}{Letter to the {Editor}: {Benford's Law}},'' \textit{The American Statistician} \textbf{26}: 65--66 (1972).
+H. R. Varian, ``\href{http://links.jstor.org/sici?sici=0003-1305\%28197206\%2926\%3A3\%3C62\%3ALTTE\%3E2.0.CO\%3B2-Q}{Letter to the {Editor}: {Benford's Law}},'' \textit{The American Statistician} \textbf{26}: 65--66 (1972).
 \bibitem[7755]{Karp:DNF0}
 R. M. Karp and M. Luby, ``{M}onte {C}arlo Algorithms for Planar Multiterminal Network Reliability Problems,'' \textit{Journal of Complexity} \textbf{1}: 45--64 (1985).
 \bibitem[7756]{Luby:Paths}
@@ -19621,7 +19621,7 @@ J. J. Wiorkowski, ``A lightly annotated bibliography of the publications of the 
 \bibitem[8019]{Shacham:2009:CAS}
 O. Shacham, M. Vechev, and E. Yahav, ``{Chameleon}: adaptive selection of collections,'' \textit{ACM SIG{\-}PLAN Notices} \textbf{44}: 408--418 (2009).
 \bibitem[802]{Auerbach:1913:GBG}
-F. Auerbach, ``\href{http://hdl.handle.net/2027/mdp.39015035583528?urlappend=%3Bseq=122}{{Das Gesetz der Bev{\"o}lkerungskonzentration}. ({German}) [{The} law of population concentration]},'' \textit{{Petermann's Geographische Mitteilungen}} \textbf{59}: 74--76 (1913). This paper is reported in \cite{Newman:2005:PLP} to be the first discovery of {\em Zipf's Law\/} in connection with city populations (see \cite{Zipf:1932:SSP}). See also \cite{Estoup:1916:GSM}.
+F. Auerbach, ``\href{http://hdl.handle.net/2027/mdp.39015035583528?urlappend=\%3Bseq=122}{{Das Gesetz der Bev{\"o}lkerungskonzentration}. ({German}) [{The} law of population concentration]},'' \textit{{Petermann's Geographische Mitteilungen}} \textbf{59}: 74--76 (1913). This paper is reported in \cite{Newman:2005:PLP} to be the first discovery of {\em Zipf's Law\/} in connection with city populations (see \cite{Zipf:1932:SSP}). See also \cite{Estoup:1916:GSM}.
 \bibitem[8020]{Eckstein:2000:US}
 R. Eckstein, D. Collier-Brown, and P. Kelly, \textit{Using {Samba}} (O'Reilly \& {Associates, Inc.}, 2000). Includes CD-ROM with complete mirror of Samba site with Samba 2.0.5a, including sources, documentation, binaries, and supplementary tools.
 \bibitem[8021]{Albert:1997:TBR}

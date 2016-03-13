@@ -1,0 +1,11 @@
+\begin{thebibliography}{1}
+\providecommand{\enquote}[1]{``#1''}
+\providecommand{\url}[1]{{\tt #1}}
+\providecommand{\href}[2]{#2}
+\setlength{\itemsep}{0pt}
+
+
+\bibitem[icpp-mpi-atomicity()]{icpp-mpi-atomicity}
+W.-k. Liao, A. Choudhary, K. Coloma, G. K. Thiruvathukal, L. Ward, E. Russell, and N. Pundit, \enquote{{Scalable Implementations of MPI Atomicity for Concurrent Overlapping I/O},} in \textit{International Conference on Parallel Processing} (2003). 
+
+\end{thebibliography}
