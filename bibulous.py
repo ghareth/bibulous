@@ -16,7 +16,11 @@ import copy         ## for the "deepcopy" command
 import platform     ## for determining the OS of the system
 from math import log10
 import pdb          ## put "pdb.set_trace()" at any place you want to interact with pdb
-from pprint import pprint       # for debugging 
+from pprint import pprint       # for debugging
+
+if (platform.system() == 'Darwin'):
+    import PyICU
+
 #import traceback    ## for getting full traceback info in exceptions
 
 '''
@@ -209,6 +213,11 @@ class Bibdata(object):
             self.locale = locale.setlocale(locale.LC_ALL,'')    ## set the locale to the user's default
         else:
             self.locale = locale.setlocale(locale.LC_ALL,uselocale)    ## set the locale to the user's default
+            
+        if (platform.system() == 'Darwin'):
+            global collator
+            collator = PyICU.Collator.createInstance(PyICU.Locale(uselocale.partition('.')[0]))
+        
 
         ## Not only do we need a dictionary for "special templates" but we also need to be able to iterate through it
         ## in the order given in the file. Thus, we have a "specials list" too.
@@ -4730,8 +4739,10 @@ def argsort(seq, reverse=False):
     idx : list of ints
         The indices needed for a sorted list.
     '''
-
-    res = sorted(range(len(seq)), key=seq.__getitem__, cmp=locale.strcoll, reverse=reverse)
+    if (platform.system() == 'Darwin'):
+        res = sorted(range(len(seq)), key=seq.__getitem__, cmp=collator.compare, reverse=reverse)
+    else:
+        res = sorted(range(len(seq)), key=seq.__getitem__, cmp=locale.strcoll, reverse=reverse)
     return(res)
 
 ## =============================
@@ -4892,7 +4903,7 @@ def get_implicit_loop_data(templatestr):
 
 if (__name__ == '__main__'):
     print('sys.argv=', sys.argv)
-    user_locale = None
+    user_locale = 'en_US.UTF-8'.encode('ascii','replace')
     if (len(sys.argv) > 1):
         try:
             (opts, args) = getopt.getopt(sys.argv[1:], '', ['locale='])
