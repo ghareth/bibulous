@@ -210,7 +210,8 @@ class Bibdata(object):
 
 
         if (uselocale == None):
-            self.locale = locale.setlocale(locale.LC_ALL,'')    ## set the locale to the user's default
+            self.locale = locale.setlocale(locale.LC_ALL,'') ## set the locale to the user's default
+            uselocale = 'C'
         else:
             self.locale = locale.setlocale(locale.LC_ALL,uselocale)    ## set the locale to the user's default
             
