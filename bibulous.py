@@ -4068,11 +4068,7 @@ def namestr_to_namedict(namestr, disable=None):
     elif (len(commapos) == 1):
         namedict = {}
         (firstpart, secondpart) = splitat(namestr, commapos)
-<<<<<<< HEAD
         first_nametokens = brace_split(firstpart.strip(),' ')
-=======
-        first_nametokens = brace_split(firstpart.strip(),' ') 
->>>>>>> break_up
         second_nametokens = brace_split(secondpart.strip(),' ')
 
         if (len(first_nametokens) == 1):
