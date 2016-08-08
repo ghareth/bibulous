@@ -6,6 +6,9 @@
 # See the LICENSE.rst file for licensing information.
 
 from __future__ import unicode_literals, print_function, division
+from builtins import str as unicode
+from past.builtins import basestring
+
 import re
 import os
 import sys
@@ -1136,13 +1139,13 @@ class Bibdata(object):
             raise ImportError('No template file was found. Aborting writing the BBL file ...')
 
         if not write_preamble:
-            filehandle = open(filename, 'a')
+            filehandle = open(filename, 'ab')
         else:
-            filehandle = open(filename, 'w')
+            filehandle = open(filename, 'wb')
 
         if write_preamble:
             if not bibsize: bibsize = repr(len(self.citedict))
-            filehandle.write('\\begin{thebibliography}{' + bibsize + '}\n'.encode('utf-8'))
+            filehandle.write((u'\\begin{thebibliography}{' + bibsize + u'}\n').encode('utf-8'))
             filehandle.write("\\providecommand{\\enquote}[1]{``#1''}\n".encode('utf-8'))
             filehandle.write('\\providecommand{\\url}[1]{{\\tt #1}}\n'.encode('utf-8'))
             filehandle.write('\\providecommand{\\href}[2]{#2}\n'.encode('utf-8'))
@@ -1155,9 +1158,59 @@ class Bibdata(object):
 
             filehandle.write('\n\n'.encode('utf-8'))
 
-        ## Use a try-except block here, so that if any exception is raised then we can make sure to produce a valid
-        ## BBL file.
-        try:
+        # Use a try-except block here, so that if any exception is raised then we can make sure to produce a valid
+        # BBL file.
+
+        if False:
+            try:
+                ## First insert special variables, so that the citation sorter and everything else can use them. Also
+                ## insert cross-reference data. Doing these here means that we don't have to add lots of extra checks
+                ## later.
+                for c in self.citedict:
+                    ## If the citation key is not in the database, then create a fake entry with it, using entrytype
+                    ## "errormsg", and an item "errormsg" that contains the thing we want printed out in the citation
+                    ## list to warn the user.
+                    if c not in self.bibdata:
+                        msg = 'citation key ``' + c + '\'\' is not in the bibliography database'
+                        bib_warning('Warning 010a: ' + msg, self.disable)
+                        errormsg = r'\textit{Warning: ' + msg + '}.'
+                        self.bibdata[c] = {'errormsg':errormsg, 'entrytype':'errormsg', 'entrykey':c}
+    
+                    self.insert_crossref_data(c)
+                    self.insert_specials(c)
+    
+                ## Define a list which contains the citation keys, sorted in the order in which we need for writing into
+                ## the BBL file.
+                self.create_citation_list()
+    
+                if ('<citealnum' in self.specials['citelabel']):
+                    alphanums = create_alphanum_citelabels(c, self.bibdata, self.citelist)
+                    for c in self.citelist:
+                        res = self.specials['citelabel'].replace('<citealnum>',alphanums[c])
+                        self.bibdata[c]['citelabel'] = res
+    
+                ## Write out each individual bibliography entry. Some formatting options will actually cause the entry to
+                ## be deleted, so we need the check below to see if the return string is empty before writing it to the
+                ## file.
+                for c in self.citelist:
+                    ## Verbose output is for debugging.
+                    if debug: print('Writing entry "' + c + '" to "' + filename + '" ...')
+    
+                    ## Now that we have generated all of the "special" fields, we can call the bibitem formatter to
+                    ## generate the output for this entry.
+                    s = self.format_bibitem(c)
+                    if (s != ''):
+                        ## Need two line EOL's here and not one so that backrefs can work properly.
+                        filehandle.write((s + '\n').encode('utf-8'))
+            except Exception as err:
+                ## Swallow the exception
+                print('Exception encountered: ' + repr(err))
+            finally:
+                if write_postamble:
+                    filehandle.write('\n\\end{thebibliography}\n'.encode('utf-8'))
+                filehandle.close()
+        else:
+            
             ## First insert special variables, so that the citation sorter and everything else can use them. Also
             ## insert cross-reference data. Doing these here means that we don't have to add lots of extra checks
             ## later.
@@ -1197,13 +1250,15 @@ class Bibdata(object):
                 if (s != ''):
                     ## Need two line EOL's here and not one so that backrefs can work properly.
                     filehandle.write((s + '\n').encode('utf-8'))
-        except Exception, err:
-            ## Swallow the exception
-            print('Exception encountered: ' + repr(err))
-        finally:
+            #except Exception as err:
+                ### Swallow the exception
+                #print('Exception encountered: ' + repr(err))
+            
             if write_postamble:
                 filehandle.write('\n\\end{thebibliography}\n'.encode('utf-8'))
             filehandle.close()
+
+
 
         return
 
@@ -1358,7 +1413,7 @@ class Bibdata(object):
             templatestr = self.template_substitution(templatestr, citekey)
             ## Add the filled-in template string onto the "\bibitem{...}\n" line in front of it.
             itemstr = itemstr + templatestr
-        except SyntaxError, err:
+        except SyntaxError as err:
             itemstr = itemstr + '\\textit{' + err + '}.'
             bib_warning('Warning 013: ' + err, self.disable)
 
@@ -4788,6 +4843,20 @@ def namedict_to_formatted_namestr(namedict, options=None):
     return(namestr)
 
 ## =============================
+
+def locale_keyfunc(keyfunc):
+    """
+    Utility to sort by string with locale considerations :
+    sorted(array_of_objects, key=locale_keyfunc(attrgetter('name')))
+    
+    http://www.programcreek.com/python/example/60842/locale.strxfrm    
+    
+    """
+    def locale_wrapper(obj):
+        return locale.strxfrm(keyfunc(obj))
+    return locale_wrapper
+
+
 def argsort(seq, reverse=False):
     '''
     Return the indices for producing a sorted list.
@@ -4804,10 +4873,12 @@ def argsort(seq, reverse=False):
     idx : list of ints
         The indices needed for a sorted list.
     '''
+
     if (platform.system() == 'Darwin'):
         res = sorted(range(len(seq)), key=seq.__getitem__, cmp=collator.compare, reverse=reverse)
     else:
         res = sorted(range(len(seq)), key=seq.__getitem__, cmp=locale.strcoll, reverse=reverse)
+
     return(res)
 
 ## =============================
@@ -4995,7 +5066,9 @@ if (__name__ == '__main__'):
         arg_bstfile = './templates/default.bst'
         files = [arg_bibfile, arg_auxfile, arg_bstfile]
 
+
     main_bibdata = Bibdata(files, uselocale=user_locale, debug=False, refresh_extract = True)
+
 
     ## Check if the bibliography database and style template files exist. If they don't, then the user didn't specify
     ## them, and it's probably true that there is no bibliography requested. That is, Bibulous was called without any
