@@ -3043,6 +3043,39 @@ def stringsplit(s, sep=r' |(?<!\\)~'):
     return(tokens)
 
 ## =============================
+def brace_split(string, splitter=" "):
+
+    ## If there are braces in the string, then we need to be careful to only allow splitting of the names when
+    ## ' and ' is at brace level 0. This requires replacing re.split() with a bunch of low-level code.
+    z = get_delim_levels(string, ('{','}'))
+    separators = []
+    sep_pattern = re.compile(splitter, re.UNICODE)
+    
+    for match in re.finditer(sep_pattern, string):
+        (i,j) = match.span()
+        if (z[i] == 0):
+            ## Record the indices of the start and end of the match.
+            separators.append((i,j))
+
+    num_splits = len(separators)
+    splits = []
+    if (num_splits == 0):
+        splits.append(string.strip())
+    if (num_splits > 0) and (separators[0][0] > 0):
+        splits.append(string[:separators[0][0]].strip())
+
+    ## Go through each match's indices and split the string at each.
+    for n in xrange(num_splits):
+        if (n == num_splits-1):
+            j = separators[n][1]            ## the end of *this* separator
+            splits.append(string[j:].strip())
+        else:
+            nexti = separators[n+1][0]      ## the beginning of the *next* separator
+            j = separators[n][1]            ## the end of *this* separator
+            splits.append(string[j:nexti].strip())
+    return splits
+
+## =============================
 def namefield_to_namelist(namefield, key=None, sep='and', disable=None):
     '''
     Parse a name field ("author" or "editor") of a BibTeX entry into a list of dicts, one for each person.
@@ -4035,7 +4068,11 @@ def namestr_to_namedict(namestr, disable=None):
     elif (len(commapos) == 1):
         namedict = {}
         (firstpart, secondpart) = splitat(namestr, commapos)
+<<<<<<< HEAD
         first_nametokens = brace_split(firstpart.strip(),' ')
+=======
+        first_nametokens = brace_split(firstpart.strip(),' ') 
+>>>>>>> break_up
         second_nametokens = brace_split(secondpart.strip(),' ')
 
         if (len(first_nametokens) == 1):
@@ -4962,7 +4999,7 @@ if (__name__ == '__main__'):
         arg_bstfile = './templates/default.bst'
         files = [arg_bibfile, arg_auxfile, arg_bstfile]
 
-    main_bibdata = Bibdata(files, uselocale=user_locale, debug=False)
+    main_bibdata = Bibdata(files, uselocale=user_locale, debug=False, refresh_extract = True)
 
     ## Check if the bibliography database and style template files exist. If they don't, then the user didn't specify
     ## them, and it's probably true that there is no bibliography requested. That is, Bibulous was called without any
