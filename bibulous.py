@@ -14,13 +14,11 @@ import locale       ## for language internationalization and localization
 import getopt       ## for getting command-line options
 import copy         ## for the "deepcopy" command
 import platform     ## for determining the OS of the system
-from math import log10
-import pdb          ## put "pdb.set_trace()" at any place you want to interact with pdb
 from pprint import pprint       # for debugging
 
 if (platform.system() == 'Darwin'):
     import PyICU
-
+#import pdb          ## put "pdb.set_trace()" at any place you want to interact with pdb
 #import traceback    ## for getting full traceback info in exceptions
 
 '''
@@ -1334,10 +1332,11 @@ class Bibdata(object):
         ## variables or else they will always be "undefined". To make this work, we also need to provide the user
         ## shortcut names:
         if self.user_variables and self.options['allow_scripts']:
-            options = self.options
-            citedict = self.citedict
-            bstdict = self.bstdict
-            bibdata = self.bibdata
+            options = self.options      # pyflakes:ignore
+            assert options
+            citedict = self.citedict    # pyflakes:ignore
+            bstdict = self.bstdict      # pyflakes:ignore
+            bibdata = self.bibdata      # pyflakes:ignore
             for user_var_name in self.user_variables:
                 user_var_value = eval(self.user_variables[user_var_name])
                 entry[user_var_name] = user_var_value
@@ -1888,8 +1887,8 @@ class Bibdata(object):
         ## Define the variables "citekey" and "citenum".
         self.bibdata[entrykey]['citekey'] = entrykey
         if self.citedict:
-            ncites = len(self.citedict)
-            #ndigits = 1 + int(log10(ncites))
+            #ncites = len(self.citedict)
+            #ndigits = 1 + int(log10(ncites))    ## note that this requires import of: from math import log10
             citenum = unicode(self.citedict[entrykey])
         else:
             citenum = '1'
@@ -3055,7 +3054,7 @@ def namefield_to_namelist(namefield, key=None, sep='and', disable=None):
     key : str, optional
         The bibliography data entry key.
     sep : str, optional
-        The string defining the string to be used as a name separator.
+        The string defining what to use as a name separator.
     disable : list of int, optional
         The list of warning message numbers to ignore.
 
@@ -3929,6 +3928,40 @@ def latex_to_utf8(s):
     return(s)
 
 ## =============================
+def brace_split(string, splitter=" "):
+
+    ## If there are braces in the string, then we need to be careful to only allow splitting of the names when
+    ## ' and ' is at brace level 0. This requires replacing re.split() with a bunch of low-level code.
+    z = get_delim_levels(string, ('{','}'))
+    separators = []
+    sep_pattern = re.compile(splitter, re.UNICODE)
+
+    for match in re.finditer(sep_pattern, string):
+        (i,j) = match.span()
+        if (z[i] == 0):
+            ## Record the indices of the start and end of the match.
+            separators.append((i,j))
+
+    num_splits = len(separators)
+    splits = []
+    if (num_splits == 0):
+        splits.append(string.strip())
+    if (num_splits > 0) and (separators[0][0] > 0):
+        splits.append(string[:separators[0][0]].strip())
+
+    ## Go through each match's indices and split the string at each.
+    for n in xrange(num_splits):
+        if (n == num_splits-1):
+            j = separators[n][1]            ## the end of *this* separator
+            splits.append(string[j:].strip())
+        else:
+            nexti = separators[n+1][0]      ## the beginning of the *next* separator
+            j = separators[n][1]            ## the end of *this* separator
+            splits.append(string[j:nexti].strip())
+    return splits
+
+## =============================
+
 def namestr_to_namedict(namestr, disable=None):
     '''
     Take a BibTeX string representing a single person's name and parse it into its first, middle, last, etc pieces.
@@ -4002,8 +4035,8 @@ def namestr_to_namedict(namestr, disable=None):
     elif (len(commapos) == 1):
         namedict = {}
         (firstpart, secondpart) = splitat(namestr, commapos)
-        first_nametokens = firstpart.strip().split(' ')
-        second_nametokens = secondpart.strip().split(' ')
+        first_nametokens = brace_split(firstpart.strip(),' ')
+        second_nametokens = brace_split(secondpart.strip(),' ')
 
         if (len(first_nametokens) == 1):
             namedict['last'] = first_nametokens[0]
@@ -4372,7 +4405,7 @@ def str_is_integer(s):
     '''
 
     try:
-        value = int(s)
+        int(s)
         return(True)
     except ValueError:
         return(False)
@@ -4553,8 +4586,6 @@ def get_names(entry, templatestr):
         The list of names found.
     '''
 
-    ## TODO: currently, the code is tied to using the 'authorname' and 'editorname'. Users should
-    ## have the ability to use whatever names they want. How can we achieve that?
     if ('authorname' in templatestr) and ('authorlist' in entry):
         return(entry['authorlist'])
     elif ('editorname' in templatestr) and ('editorlist' in entry):
@@ -4831,14 +4862,14 @@ def get_implicit_loop_data(templatestr):
     if not match:
         msg = 'Warning 030a: the template string "' + templatestr + '" is malformed. It does not have a ' + \
               'template variable to the left of the ellipsis (implied loop).'
-        bibulous.bib_warning(msg)
+        bib_warning(msg)
         return(None)
 
     for i,match in enumerate(re.finditer(r'<.*?>', lhs)):
         if (i > 1):
             msg = 'Warning 030b: the template string "' + templatestr + '" is malformed. Only one variable is allowed ' + \
                   'but the template has more than one.'
-            bibulous.bib_warning(msg)
+            bib_warning(msg)
         lhs_span = match.span()
     lhs_var = match.group()
 

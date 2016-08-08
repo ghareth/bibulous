@@ -10,6 +10,14 @@ For version 1.4, the goal is to have group templates working.
   unnested sequence into a nested one. Need to look for that. We can probably do this check
   when the BST file is parsed, rather than when we do string substitution in the template
   for every entry.
+  
+- Add a comment in the documentation about changing the option keyword "name_separator" from the default "and"
+  to some new one, like "y". This appears to force the separator to be used in both the BIB database file and not just the output formatted reference. Add functionality allowing you to separate the database name separator from the formatted reference name separator.
+  
+- It seems likely that the hyperref package compatibility is fragile. Try finding a way to make it more robust.
+
+- Currently, the ``get_names()`` function code is tied to using ``authorname`` and ``editorname``. Users should
+  have the ability to use whatever names they want. How can we achieve that?
 
 - Get the ``backrefs`` option back up and working.
 
@@ -132,6 +140,10 @@ For version 1.4, the goal is to have group templates working.
     - Commit messages make sense.
     - Code coverage didn't decrease.
     - Checks on specific types of features ("Script parameters should be documented").
+
+- ``citationstyles.org`` has thousands of styles defined which are used by other programs such 
+  as Zotero and Mendeley. Think about how to convert these to Bibulous templates and have a large
+  library of pre-defined styles. PS: Also see ``https://github.com/citation-style-language``
 
 
 Python testing to-do
