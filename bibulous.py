@@ -4857,6 +4857,8 @@ def locale_keyfunc(keyfunc):
     return locale_wrapper
 
 
+## =============================
+
 def argsort(seq, reverse=False):
     '''
     Return the indices for producing a sorted list.
@@ -4874,11 +4876,17 @@ def argsort(seq, reverse=False):
         The indices needed for a sorted list.
     '''
 
+#<<<<<<< HEAD
     if (platform.system() == 'Darwin'):
         res = sorted(range(len(seq)), key=seq.__getitem__, cmp=collator.compare, reverse=reverse)
     else:
         res = sorted(range(len(seq)), key=seq.__getitem__, cmp=locale.strcoll, reverse=reverse)
 
+#=======
+##   res = sorted(range(len(seq)), key=seq.__getitem__, cmp=locale.strcoll, reverse=reverse) # TO BE DELETED 
+#   res = sorted(range(len(seq)), key=locale_keyfunc(seq.__getitem__), reverse=reverse) # Need to check out if locale works in Python3
+    
+#>>>>>>> Python3_compatible
     return(res)
 
 ## =============================
