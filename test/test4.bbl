@@ -9,361 +9,361 @@
 %% SETTING SORTKEY = <presortkey.purify().lower().compress()>
 
 \bibitem{AA0000}
-aa0000
+AA and A. bb, ``None'' (0000).
 \bibitem{AAberg2010}
-aaberg2010
+I. {\AA}berg, B. Ackland, J. V. Beach, C. Godek, R. Johnson, C. A. King, A. Lattes, \textit{et~al.}, ``A low dark current and high quantum efficiency monolithic Germanium-on-Silicon CMOS imager technology for day and night imaging applications'' (2010).
 \bibitem{Aspect1982}
-aspect1982
+A. Aspect, P. Grangier, and G. Roger, ``Experimental realization of Einstein-Podolsky-Rosen-Bohm \textit{Gedenkenexperiment}: a new violation of Bell's inequalities'' (1982).
 \bibitem{bb-1}
-bb-1
+A. bb and AA, ``Nothing much'' (-1).
 \bibitem{Blouke2000}
-blouke2000
+M. M. Blouke, N. Sampat, G. M. Williams, Jr., and T. Yeh, eds, ``Sensors and Camera Systems for Scientific, Industrial, and Digital Photography Applications,'' SPIE (2000).
 \bibitem{Bunny1}
-bunny1
+B. Bunny, ``Looney tunes'' (2001).
 \bibitem{Chang1992}
-chang1992
+C.-I. Chang, ``Implementation scheme for recursion in spectral dimension'' (1992).
 \bibitem{Gemert1995}
-gemert1995
+M. J. C. van Gemert, ``One dimensional transport theory,'' in Optical-Thermal Response of Laser-Irradiated Tissue, Plenum Press (1995).
 \bibitem{Kelvin1869}
-kelvin1869
+L. Kelvin, ``On vortex motion'' (1869).
 \bibitem{Mustafa2013}
-mustafa2013
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative Förster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{Mustafa2013a}
-mustafa2013a
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{Mustafa2013b}
-mustafa2013b
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2012).
 \bibitem{Otobe2006}
-otobe2006
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{Strangekey}
-strangekey
+M. Aaa, ``Nothing of consequence'' (1901).
 \bibitem{Thomson1848}
-thomson1848
+W. {Thomson [Lord Kelvin]}, ``On an absolute thermometric scale, founded on Carnot's theory of the motive power of heat'' (1848).
 \bibitem{Yanny2009}
-yanny2009
+B. Yanny, C. Rockosi, H. J. Newberg, G. R. Knapp, J. K. Adelman-McCarthy, B. Alcorn, S. Allam, \textit{et~al.}, ``SEGUE: a spectroscopic survey of 240,000 stars with $g = 14$--20'' (2009).
 \bibitem{乙部2006}
-乙部2006
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{乙部2006a}
-乙部2006a
+乙. {厳己} and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006).
 
 
 %% SETTING PRESORTKEY = [<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|][<sorttitle>|<title>]
 %% SETTING SORTKEY = <presortkey.purify().lower().compress()>
 \bibitem{AA0000}
-aa0000none
+AA and A. bb, ``None'' (0000).
 \bibitem{Strangekey}
-aaamister1901nothingofconsequence
+M. Aaa, ``Nothing of consequence'' (1901).
 \bibitem{AAberg2010}
-åbergi.2010alowdarkcurrentandhighquantumefficiencymonolithicgermanium-on-siliconcmosimagertechnologyfordayandnightimagingapplications
+I. {\AA}berg, B. Ackland, J. V. Beach, C. Godek, R. Johnson, C. A. King, A. Lattes, \textit{et~al.}, ``A low dark current and high quantum efficiency monolithic Germanium-on-Silicon CMOS imager technology for day and night imaging applications'' (2010).
 \bibitem{Aspect1982}
-aspectalain1982experimentalrealizationofeinstein-podolsky-rosen-bohmgedenkenexperiment:anewviolationofbell'sinequalities
+A. Aspect, P. Grangier, and G. Roger, ``Experimental realization of Einstein-Podolsky-Rosen-Bohm \textit{Gedenkenexperiment}: a new violation of Bell's inequalities'' (1982).
 \bibitem{bb-1}
-bbaa-0001nothingmuch
+A. bb and AA, ``Nothing much'' (-1).
 \bibitem{Blouke2000}
-bloukemorley2000sensorsandcamerasystemsforscientific,industrial,anddigitalphotographyapplications
+M. M. Blouke, N. Sampat, G. M. Williams, Jr., and T. Yeh, eds, ``Sensors and Camera Systems for Scientific, Industrial, and Digital Photography Applications,'' SPIE (2000).
 \bibitem{Chang1992}
-changchein-i.1992implementationschemeforrecursioninspectraldimension
+C.-I. Chang, ``Implementation scheme for recursion in spectral dimension'' (1992).
 \bibitem{Gemert1995}
-gemertmartin1995onedimensionaltransporttheory
+M. J. C. van Gemert, ``One dimensional transport theory,'' in Optical-Thermal Response of Laser-Irradiated Tissue, Plenum Press (1995).
 \bibitem{Kelvin1869}
-kelvinlord1869onvortexmotion
+L. Kelvin, ``On vortex motion'' (1869).
 \bibitem{Mustafa2013b}
-mustafasanam2012quantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2012).
 \bibitem{Mustafa2013a}
-mustafasanam2013quantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{Mustafa2013}
-mustafasanam2013quantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative Förster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{乙部2006}
-otobeyoshiki2006jbibtexの使用法
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{Otobe2006}
-otobeyoshiki2006jbibtexの使用法
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{Thomson1848}
-thomson[lordkelvin]w.1848onanabsolutethermometricscale,foundedoncarnot'stheoryofthemotivepowerofheat
+W. {Thomson [Lord Kelvin]}, ``On an absolute thermometric scale, founded on Carnot's theory of the motive power of heat'' (1848).
 \bibitem{Bunny1}
-tingbugs1901wartimeideologyandtheamericananimatedcartoon
+B. Bunny, ``Looney tunes'' (2001).
 \bibitem{Yanny2009}
-yannybrian2009segue:aspectroscopicsurveyof240,000starswith$g=14$--20
+B. Yanny, C. Rockosi, H. J. Newberg, G. R. Knapp, J. K. Adelman-McCarthy, B. Alcorn, S. Allam, \textit{et~al.}, ``SEGUE: a spectroscopic survey of 240,000 stars with $g = 14$--20'' (2009).
 \bibitem{乙部2006a}
-厳己乙部2006jbibtexの使用法
+乙. {厳己} and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006).
 
 
 %% SETTING PRESORTKEY = [<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>][<sortyear.zfill(4)>|<year.zfill(4)>|]
 %% SETTING SORTKEY = <presortkey.purify().lower().compress()>
 \bibitem{Strangekey}
-aaamisternothingofconsequence1901
+M. Aaa, ``Nothing of consequence'' (1901).
 \bibitem{AA0000}
-aanone0000
+AA and A. bb, ``None'' (0000).
 \bibitem{AAberg2010}
-åbergi.alowdarkcurrentandhighquantumefficiencymonolithicgermanium-on-siliconcmosimagertechnologyfordayandnightimagingapplications2010
+I. {\AA}berg, B. Ackland, J. V. Beach, C. Godek, R. Johnson, C. A. King, A. Lattes, \textit{et~al.}, ``A low dark current and high quantum efficiency monolithic Germanium-on-Silicon CMOS imager technology for day and night imaging applications'' (2010).
 \bibitem{Aspect1982}
-aspectalainexperimentalrealizationofeinstein-podolsky-rosen-bohmgedenkenexperiment:anewviolationofbell'sinequalities1982
+A. Aspect, P. Grangier, and G. Roger, ``Experimental realization of Einstein-Podolsky-Rosen-Bohm \textit{Gedenkenexperiment}: a new violation of Bell's inequalities'' (1982).
 \bibitem{bb-1}
-bbaanothingmuch-0001
+A. bb and AA, ``Nothing much'' (-1).
 \bibitem{Blouke2000}
-bloukemorleysensorsandcamerasystemsforscientific,industrial,anddigitalphotographyapplications2000
+M. M. Blouke, N. Sampat, G. M. Williams, Jr., and T. Yeh, eds, ``Sensors and Camera Systems for Scientific, Industrial, and Digital Photography Applications,'' SPIE (2000).
 \bibitem{Chang1992}
-changchein-i.implementationschemeforrecursioninspectraldimension1992
+C.-I. Chang, ``Implementation scheme for recursion in spectral dimension'' (1992).
 \bibitem{Gemert1995}
-gemertmartinonedimensionaltransporttheory1995
+M. J. C. van Gemert, ``One dimensional transport theory,'' in Optical-Thermal Response of Laser-Irradiated Tissue, Plenum Press (1995).
 \bibitem{Kelvin1869}
-kelvinlordonvortexmotion1869
+L. Kelvin, ``On vortex motion'' (1869).
 \bibitem{Mustafa2013b}
-mustafasanamquantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra2012
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2012).
 \bibitem{Mustafa2013a}
-mustafasanamquantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra2013
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{Mustafa2013}
-mustafasanamquantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra2013
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative Förster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{乙部2006}
-otobeyoshikijbibtexの使用法2006
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{Otobe2006}
-otobeyoshikijbibtexの使用法2006
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{Thomson1848}
-thomson[lordkelvin]w.onanabsolutethermometricscale,foundedoncarnot'stheoryofthemotivepowerofheat1848
+W. {Thomson [Lord Kelvin]}, ``On an absolute thermometric scale, founded on Carnot's theory of the motive power of heat'' (1848).
 \bibitem{Bunny1}
-tingbugswartimeideologyandtheamericananimatedcartoon1901
+B. Bunny, ``Looney tunes'' (2001).
 \bibitem{Yanny2009}
-yannybriansegue:aspectroscopicsurveyof240,000starswith$g=14$--202009
+B. Yanny, C. Rockosi, H. J. Newberg, G. R. Knapp, J. K. Adelman-McCarthy, B. Alcorn, S. Allam, \textit{et~al.}, ``SEGUE: a spectroscopic survey of 240,000 stars with $g = 14$--20'' (2009).
 \bibitem{乙部2006a}
-厳己乙部jbibtexの使用法2006
+乙. {厳己} and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006).
 
 
 %% SETTING PRESORTKEY = [<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|]<volume>[<sorttitle>|<title>]
 %% SETTING SORTKEY = <presortkey.purify().lower().compress()>
 \bibitem{AA0000}
-aa000010none
+AA and A. bb, ``None'' (0000).
 \bibitem{Strangekey}
-aaamister1901???nothingofconsequence
+M. Aaa, ``Nothing of consequence'' (1901).
 \bibitem{AAberg2010}
-åbergi.2010???alowdarkcurrentandhighquantumefficiencymonolithicgermanium-on-siliconcmosimagertechnologyfordayandnightimagingapplications
+I. {\AA}berg, B. Ackland, J. V. Beach, C. Godek, R. Johnson, C. A. King, A. Lattes, \textit{et~al.}, ``A low dark current and high quantum efficiency monolithic Germanium-on-Silicon CMOS imager technology for day and night imaging applications'' (2010).
 \bibitem{Aspect1982}
-aspectalain198249experimentalrealizationofeinstein-podolsky-rosen-bohmgedenkenexperiment:anewviolationofbell'sinequalities
+A. Aspect, P. Grangier, and G. Roger, ``Experimental realization of Einstein-Podolsky-Rosen-Bohm \textit{Gedenkenexperiment}: a new violation of Bell's inequalities'' (1982).
 \bibitem{bb-1}
-bbaa-00012nothingmuch
+A. bb and AA, ``Nothing much'' (-1).
 \bibitem{Blouke2000}
-bloukemorley20006501sensorsandcamerasystemsforscientific,industrial,anddigitalphotographyapplications
+M. M. Blouke, N. Sampat, G. M. Williams, Jr., and T. Yeh, eds, ``Sensors and Camera Systems for Scientific, Industrial, and Digital Photography Applications,'' SPIE (2000).
 \bibitem{Chang1992}
-changchein-i.1992???implementationschemeforrecursioninspectraldimension
+C.-I. Chang, ``Implementation scheme for recursion in spectral dimension'' (1992).
 \bibitem{Gemert1995}
-gemertmartin1995???onedimensionaltransporttheory
+M. J. C. van Gemert, ``One dimensional transport theory,'' in Optical-Thermal Response of Laser-Irradiated Tissue, Plenum Press (1995).
 \bibitem{Kelvin1869}
-kelvinlord186925onvortexmotion
+L. Kelvin, ``On vortex motion'' (1869).
 \bibitem{Mustafa2013b}
-mustafasanam201218quantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2012).
 \bibitem{Mustafa2013a}
-mustafasanam201318quantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{Mustafa2013}
-mustafasanam201318quantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative Förster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{乙部2006}
-otobeyoshiki2006???jbibtexの使用法
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{Otobe2006}
-otobeyoshiki2006???jbibtexの使用法
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{Thomson1848}
-thomson[lordkelvin]w.1848???onanabsolutethermometricscale,foundedoncarnot'stheoryofthemotivepowerofheat
+W. {Thomson [Lord Kelvin]}, ``On an absolute thermometric scale, founded on Carnot's theory of the motive power of heat'' (1848).
 \bibitem{Bunny1}
-tingbugs1901???wartimeideologyandtheamericananimatedcartoon
+B. Bunny, ``Looney tunes'' (2001).
 \bibitem{Yanny2009}
-yannybrian2009137segue:aspectroscopicsurveyof240,000starswith$g=14$--20
+B. Yanny, C. Rockosi, H. J. Newberg, G. R. Knapp, J. K. Adelman-McCarthy, B. Alcorn, S. Allam, \textit{et~al.}, ``SEGUE: a spectroscopic survey of 240,000 stars with $g = 14$--20'' (2009).
 \bibitem{乙部2006a}
-厳己乙部2006???jbibtexの使用法
+乙. {厳己} and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006).
 
 
 %% SETTING PRESORTKEY = [<alphalabel>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|][<sorttitle>|<title>]
 %% SETTING SORTKEY = <presortkey.purify().lower().compress()>
 \bibitem{Strangekey}
-aaamister1901nothingofconsequence
+M. Aaa, ``Nothing of consequence'' (1901).
 \bibitem{AA0000}
-aaazaa0000none
+AA and A. bb, ``None'' (0000).
 \bibitem{AAberg2010}
-åbergi.2010alowdarkcurrentandhighquantumefficiencymonolithicgermanium-on-siliconcmosimagertechnologyfordayandnightimagingapplications
+I. {\AA}berg, B. Ackland, J. V. Beach, C. Godek, R. Johnson, C. A. King, A. Lattes, \textit{et~al.}, ``A low dark current and high quantum efficiency monolithic Germanium-on-Silicon CMOS imager technology for day and night imaging applications'' (2010).
 \bibitem{Aspect1982}
-aspectalain1982experimentalrealizationofeinstein-podolsky-rosen-bohmgedenkenexperiment:anewviolationofbell'sinequalities
+A. Aspect, P. Grangier, and G. Roger, ``Experimental realization of Einstein-Podolsky-Rosen-Bohm \textit{Gedenkenexperiment}: a new violation of Bell's inequalities'' (1982).
 \bibitem{Yanny2009}
-azyannybrian2009segue:aspectroscopicsurveyof240,000starswith$g=14$--20
+B. Yanny, C. Rockosi, H. J. Newberg, G. R. Knapp, J. K. Adelman-McCarthy, B. Alcorn, S. Allam, \textit{et~al.}, ``SEGUE: a spectroscopic survey of 240,000 stars with $g = 14$--20'' (2009).
 \bibitem{bb-1}
-bbaa-0001nothingmuch
+A. bb and AA, ``Nothing much'' (-1).
 \bibitem{Blouke2000}
-bloukemorley2000sensorsandcamerasystemsforscientific,industrial,anddigitalphotographyapplications
+M. M. Blouke, N. Sampat, G. M. Williams, Jr., and T. Yeh, eds, ``Sensors and Camera Systems for Scientific, Industrial, and Digital Photography Applications,'' SPIE (2000).
 \bibitem{Chang1992}
-changchein-i.1992implementationschemeforrecursioninspectraldimension
+C.-I. Chang, ``Implementation scheme for recursion in spectral dimension'' (1992).
 \bibitem{Gemert1995}
-gemertmartin1995onedimensionaltransporttheory
+M. J. C. van Gemert, ``One dimensional transport theory,'' in Optical-Thermal Response of Laser-Irradiated Tissue, Plenum Press (1995).
 \bibitem{Kelvin1869}
-kelvinlord1869onvortexmotion
+L. Kelvin, ``On vortex motion'' (1869).
 \bibitem{Mustafa2013b}
-mustafasanam2012quantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2012).
 \bibitem{Mustafa2013a}
-mustafasanam2013quantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{Mustafa2013}
-mustafasanam2013quantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative Förster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{Thomson1848}
-thomson[lordkelvin]w.1848onanabsolutethermometricscale,foundedoncarnot'stheoryofthemotivepowerofheat
+W. {Thomson [Lord Kelvin]}, ``On an absolute thermometric scale, founded on Carnot's theory of the motive power of heat'' (1848).
 \bibitem{Bunny1}
-tingbugs1901wartimeideologyandtheamericananimatedcartoon
+B. Bunny, ``Looney tunes'' (2001).
 \bibitem{乙部2006}
-おとべotobeyoshiki2006jbibtexの使用法
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{Otobe2006}
-おとべotobeyoshiki2006jbibtexの使用法
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{乙部2006a}
-厳己乙部2006jbibtexの使用法
+乙. {厳己} and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006).
 
 
 %% SETTING PRESORTKEY = [<alphalabel>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|]<volume>[<sorttitle>|<title>]
 %% SETTING SORTKEY = <presortkey.purify().lower().compress()>
 \bibitem{Strangekey}
-aaamister1901???nothingofconsequence
+M. Aaa, ``Nothing of consequence'' (1901).
 \bibitem{AA0000}
-aaazaa000010none
+AA and A. bb, ``None'' (0000).
 \bibitem{AAberg2010}
-åbergi.2010???alowdarkcurrentandhighquantumefficiencymonolithicgermanium-on-siliconcmosimagertechnologyfordayandnightimagingapplications
+I. {\AA}berg, B. Ackland, J. V. Beach, C. Godek, R. Johnson, C. A. King, A. Lattes, \textit{et~al.}, ``A low dark current and high quantum efficiency monolithic Germanium-on-Silicon CMOS imager technology for day and night imaging applications'' (2010).
 \bibitem{Aspect1982}
-aspectalain198249experimentalrealizationofeinstein-podolsky-rosen-bohmgedenkenexperiment:anewviolationofbell'sinequalities
+A. Aspect, P. Grangier, and G. Roger, ``Experimental realization of Einstein-Podolsky-Rosen-Bohm \textit{Gedenkenexperiment}: a new violation of Bell's inequalities'' (1982).
 \bibitem{Yanny2009}
-azyannybrian2009137segue:aspectroscopicsurveyof240,000starswith$g=14$--20
+B. Yanny, C. Rockosi, H. J. Newberg, G. R. Knapp, J. K. Adelman-McCarthy, B. Alcorn, S. Allam, \textit{et~al.}, ``SEGUE: a spectroscopic survey of 240,000 stars with $g = 14$--20'' (2009).
 \bibitem{bb-1}
-bbaa-00012nothingmuch
+A. bb and AA, ``Nothing much'' (-1).
 \bibitem{Blouke2000}
-bloukemorley20006501sensorsandcamerasystemsforscientific,industrial,anddigitalphotographyapplications
+M. M. Blouke, N. Sampat, G. M. Williams, Jr., and T. Yeh, eds, ``Sensors and Camera Systems for Scientific, Industrial, and Digital Photography Applications,'' SPIE (2000).
 \bibitem{Chang1992}
-changchein-i.1992???implementationschemeforrecursioninspectraldimension
+C.-I. Chang, ``Implementation scheme for recursion in spectral dimension'' (1992).
 \bibitem{Gemert1995}
-gemertmartin1995???onedimensionaltransporttheory
+M. J. C. van Gemert, ``One dimensional transport theory,'' in Optical-Thermal Response of Laser-Irradiated Tissue, Plenum Press (1995).
 \bibitem{Kelvin1869}
-kelvinlord186925onvortexmotion
+L. Kelvin, ``On vortex motion'' (1869).
 \bibitem{Mustafa2013b}
-mustafasanam201218quantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2012).
 \bibitem{Mustafa2013a}
-mustafasanam201318quantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{Mustafa2013}
-mustafasanam201318quantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative Förster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{Thomson1848}
-thomson[lordkelvin]w.1848???onanabsolutethermometricscale,foundedoncarnot'stheoryofthemotivepowerofheat
+W. {Thomson [Lord Kelvin]}, ``On an absolute thermometric scale, founded on Carnot's theory of the motive power of heat'' (1848).
 \bibitem{Bunny1}
-tingbugs1901???wartimeideologyandtheamericananimatedcartoon
+B. Bunny, ``Looney tunes'' (2001).
 \bibitem{乙部2006}
-おとべotobeyoshiki2006???jbibtexの使用法
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{Otobe2006}
-おとべotobeyoshiki2006???jbibtexの使用法
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{乙部2006a}
-厳己乙部2006???jbibtexの使用法
+乙. {厳己} and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006).
 
 
 %% SETTING PRESORTKEY = [<sortyear.zfill(4)>|<year.zfill(4)>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>]
 %% SETTING SORTKEY = <presortkey.purify().lower().compress()>
 \bibitem{bb-1}
--0001bbaanothingmuch
+A. bb and AA, ``Nothing much'' (-1).
 \bibitem{AA0000}
-0000aanone
+AA and A. bb, ``None'' (0000).
 \bibitem{Thomson1848}
-1848thomson[lordkelvin]w.onanabsolutethermometricscale,foundedoncarnot'stheoryofthemotivepowerofheat
+W. {Thomson [Lord Kelvin]}, ``On an absolute thermometric scale, founded on Carnot's theory of the motive power of heat'' (1848).
 \bibitem{Kelvin1869}
-1869kelvinlordonvortexmotion
+L. Kelvin, ``On vortex motion'' (1869).
 \bibitem{Strangekey}
-1901aaamisternothingofconsequence
+M. Aaa, ``Nothing of consequence'' (1901).
 \bibitem{Bunny1}
-1901tingbugswartimeideologyandtheamericananimatedcartoon
+B. Bunny, ``Looney tunes'' (2001).
 \bibitem{Aspect1982}
-1982aspectalainexperimentalrealizationofeinstein-podolsky-rosen-bohmgedenkenexperiment:anewviolationofbell'sinequalities
+A. Aspect, P. Grangier, and G. Roger, ``Experimental realization of Einstein-Podolsky-Rosen-Bohm \textit{Gedenkenexperiment}: a new violation of Bell's inequalities'' (1982).
 \bibitem{Chang1992}
-1992changchein-i.implementationschemeforrecursioninspectraldimension
+C.-I. Chang, ``Implementation scheme for recursion in spectral dimension'' (1992).
 \bibitem{Gemert1995}
-1995gemertmartinonedimensionaltransporttheory
+M. J. C. van Gemert, ``One dimensional transport theory,'' in Optical-Thermal Response of Laser-Irradiated Tissue, Plenum Press (1995).
 \bibitem{Blouke2000}
-2000bloukemorleysensorsandcamerasystemsforscientific,industrial,anddigitalphotographyapplications
+M. M. Blouke, N. Sampat, G. M. Williams, Jr., and T. Yeh, eds, ``Sensors and Camera Systems for Scientific, Industrial, and Digital Photography Applications,'' SPIE (2000).
 \bibitem{乙部2006}
-2006otobeyoshikijbibtexの使用法
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{Otobe2006}
-2006otobeyoshikijbibtexの使用法
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{乙部2006a}
-2006厳己乙部jbibtexの使用法
+乙. {厳己} and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006).
 \bibitem{Yanny2009}
-2009yannybriansegue:aspectroscopicsurveyof240,000starswith$g=14$--20
+B. Yanny, C. Rockosi, H. J. Newberg, G. R. Knapp, J. K. Adelman-McCarthy, B. Alcorn, S. Allam, \textit{et~al.}, ``SEGUE: a spectroscopic survey of 240,000 stars with $g = 14$--20'' (2009).
 \bibitem{AAberg2010}
-2010åbergi.alowdarkcurrentandhighquantumefficiencymonolithicgermanium-on-siliconcmosimagertechnologyfordayandnightimagingapplications
+I. {\AA}berg, B. Ackland, J. V. Beach, C. Godek, R. Johnson, C. A. King, A. Lattes, \textit{et~al.}, ``A low dark current and high quantum efficiency monolithic Germanium-on-Silicon CMOS imager technology for day and night imaging applications'' (2010).
 \bibitem{Mustafa2013b}
-2012mustafasanamquantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2012).
 \bibitem{Mustafa2013a}
-2013mustafasanamquantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{Mustafa2013}
-2013mustafasanamquantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative Förster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 
 
 %% SETTING PRESORTKEY = [<sortyear.zfill(4)>|<year.zfill(4)>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>]
 %% SETTING SORTKEY = <presortkey.purify().lower().compress()>
 %% SETTING SORT_ORDER = Reverse
 \bibitem{Mustafa2013}
-2013mustafasanamquantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative Förster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{Mustafa2013a}
-2013mustafasanamquantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{Mustafa2013b}
-2012mustafasanamquantitativeförsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2012).
 \bibitem{AAberg2010}
-2010åbergi.alowdarkcurrentandhighquantumefficiencymonolithicgermanium-on-siliconcmosimagertechnologyfordayandnightimagingapplications
+I. {\AA}berg, B. Ackland, J. V. Beach, C. Godek, R. Johnson, C. A. King, A. Lattes, \textit{et~al.}, ``A low dark current and high quantum efficiency monolithic Germanium-on-Silicon CMOS imager technology for day and night imaging applications'' (2010).
 \bibitem{Yanny2009}
-2009yannybriansegue:aspectroscopicsurveyof240,000starswith$g=14$--20
+B. Yanny, C. Rockosi, H. J. Newberg, G. R. Knapp, J. K. Adelman-McCarthy, B. Alcorn, S. Allam, \textit{et~al.}, ``SEGUE: a spectroscopic survey of 240,000 stars with $g = 14$--20'' (2009).
 \bibitem{乙部2006a}
-2006厳己乙部jbibtexの使用法
+乙. {厳己} and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006).
 \bibitem{Otobe2006}
-2006otobeyoshikijbibtexの使用法
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{乙部2006}
-2006otobeyoshikijbibtexの使用法
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{Blouke2000}
-2000bloukemorleysensorsandcamerasystemsforscientific,industrial,anddigitalphotographyapplications
+M. M. Blouke, N. Sampat, G. M. Williams, Jr., and T. Yeh, eds, ``Sensors and Camera Systems for Scientific, Industrial, and Digital Photography Applications,'' SPIE (2000).
 \bibitem{Gemert1995}
-1995gemertmartinonedimensionaltransporttheory
+M. J. C. van Gemert, ``One dimensional transport theory,'' in Optical-Thermal Response of Laser-Irradiated Tissue, Plenum Press (1995).
 \bibitem{Chang1992}
-1992changchein-i.implementationschemeforrecursioninspectraldimension
+C.-I. Chang, ``Implementation scheme for recursion in spectral dimension'' (1992).
 \bibitem{Aspect1982}
-1982aspectalainexperimentalrealizationofeinstein-podolsky-rosen-bohmgedenkenexperiment:anewviolationofbell'sinequalities
+A. Aspect, P. Grangier, and G. Roger, ``Experimental realization of Einstein-Podolsky-Rosen-Bohm \textit{Gedenkenexperiment}: a new violation of Bell's inequalities'' (1982).
 \bibitem{Bunny1}
-1901tingbugswartimeideologyandtheamericananimatedcartoon
+B. Bunny, ``Looney tunes'' (2001).
 \bibitem{Strangekey}
-1901aaamisternothingofconsequence
+M. Aaa, ``Nothing of consequence'' (1901).
 \bibitem{Kelvin1869}
-1869kelvinlordonvortexmotion
+L. Kelvin, ``On vortex motion'' (1869).
 \bibitem{Thomson1848}
-1848thomson[lordkelvin]w.onanabsolutethermometricscale,foundedoncarnot'stheoryofthemotivepowerofheat
+W. {Thomson [Lord Kelvin]}, ``On an absolute thermometric scale, founded on Carnot's theory of the motive power of heat'' (1848).
 \bibitem{AA0000}
-0000aanone
+AA and A. bb, ``None'' (0000).
 \bibitem{bb-1}
--0001bbaanothingmuch
+A. bb and AA, ``Nothing much'' (-1).
 
 
 %% SETTING PRESORTKEY = [<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>][<sorttitle>|<title>]
 %% SETTING SORTKEY = <presortkey.purify().compress()>
 \bibitem{AA0000}
-AA0000None
+AA and A. bb, ``None'' (0000).
 \bibitem{Strangekey}
-AaaMister1901Nothingofconsequence
+M. Aaa, ``Nothing of consequence'' (1901).
 \bibitem{AAberg2010}
-ÅbergI.2010AlowdarkcurrentandhighquantumefficiencymonolithicGermanium-on-SiliconCMOSimagertechnologyfordayandnightimagingapplications
+I. {\AA}berg, B. Ackland, J. V. Beach, C. Godek, R. Johnson, C. A. King, A. Lattes, \textit{et~al.}, ``A low dark current and high quantum efficiency monolithic Germanium-on-Silicon CMOS imager technology for day and night imaging applications'' (2010).
 \bibitem{Aspect1982}
-AspectAlain1982ExperimentalrealizationofEinstein-Podolsky-Rosen-BohmGedenkenexperiment:anewviolationofBell'sinequalities
+A. Aspect, P. Grangier, and G. Roger, ``Experimental realization of Einstein-Podolsky-Rosen-Bohm \textit{Gedenkenexperiment}: a new violation of Bell's inequalities'' (1982).
 \bibitem{bb-1}
-bbAA-0001Nothingmuch
+A. bb and AA, ``Nothing much'' (-1).
 \bibitem{Blouke2000}
-BloukeMorley2000SensorsandCameraSystemsforScientific,Industrial,andDigitalPhotographyApplications
+M. M. Blouke, N. Sampat, G. M. Williams, Jr., and T. Yeh, eds, ``Sensors and Camera Systems for Scientific, Industrial, and Digital Photography Applications,'' SPIE (2000).
 \bibitem{Chang1992}
-ChangChein-I.1992Implementationschemeforrecursioninspectraldimension
+C.-I. Chang, ``Implementation scheme for recursion in spectral dimension'' (1992).
 \bibitem{Gemert1995}
-GemertMartin1995Onedimensionaltransporttheory
+M. J. C. van Gemert, ``One dimensional transport theory,'' in Optical-Thermal Response of Laser-Irradiated Tissue, Plenum Press (1995).
 \bibitem{Kelvin1869}
-KelvinLord1869Onvortexmotion
+L. Kelvin, ``On vortex motion'' (1869).
 \bibitem{Mustafa2013b}
-MustafaSanam2012QuantitativeFörsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2012).
 \bibitem{Mustafa2013a}
-MustafaSanam2013QuantitativeFörsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative F{\"o}rster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{Mustafa2013}
-MustafaSanam2013QuantitativeFörsterresonanceenergytransferefficiencymeasurementsusingsimultaneousspectralunmixingofexcitationandemissionspectra
+S. Mustafa, J. Hannagan, P. Rigby, K. Pfleger, and B. Corry, ``Quantitative Förster resonance energy transfer efficiency measurements using simultaneous spectral unmixing of excitation and emission spectra'' (2013).
 \bibitem{乙部2006}
-OtobeYoshiki2006jBibTEXの使用法
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{Otobe2006}
-OtobeYoshiki2006jBibTEXの使用法
+Y. Otobe and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006). [In Japanese.]
 \bibitem{Thomson1848}
-Thomson[LordKelvin]W.1848Onanabsolutethermometricscale,foundedonCarnot'stheoryofthemotivepowerofheat
+W. {Thomson [Lord Kelvin]}, ``On an absolute thermometric scale, founded on Carnot's theory of the motive power of heat'' (1848).
 \bibitem{Bunny1}
-TingBugs1901WartimeideologyandtheAmericananimatedcartoon
+B. Bunny, ``Looney tunes'' (2001).
 \bibitem{Yanny2009}
-YannyBrian2009SEGUE:aspectroscopicsurveyof240,000starswith$g=14$--20
+B. Yanny, C. Rockosi, H. J. Newberg, G. R. Knapp, J. K. Adelman-McCarthy, B. Alcorn, S. Allam, \textit{et~al.}, ``SEGUE: a spectroscopic survey of 240,000 stars with $g = 14$--20'' (2009).
 \bibitem{乙部2006a}
-厳己乙部2006jBibTEXの使用法
+乙. {厳己} and P. Horton, ``jBibTEXの使用法,'' ソフトバンクパブリッシング (2006).
 
 \end{thebibliography}
