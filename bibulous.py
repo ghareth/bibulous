@@ -6,6 +6,9 @@
 # See the LICENSE.rst file for licensing information.
 
 from __future__ import unicode_literals, print_function, division
+from builtins import str as unicode
+from past.builtins import basestring
+
 import re
 import os
 import sys
@@ -1098,13 +1101,13 @@ class Bibdata(object):
             raise ImportError('No template file was found. Aborting writing the BBL file ...')
 
         if not write_preamble:
-            filehandle = open(filename, 'a')
+            filehandle = open(filename, 'ab')
         else:
-            filehandle = open(filename, 'w')
+            filehandle = open(filename, 'wb')
 
         if write_preamble:
             if not bibsize: bibsize = repr(len(self.citedict))
-            filehandle.write('\\begin{thebibliography}{' + bibsize + '}\n'.encode('utf-8'))
+            filehandle.write((u'\\begin{thebibliography}{' + bibsize + u'}\n').encode('utf-8'))
             filehandle.write("\\providecommand{\\enquote}[1]{``#1''}\n".encode('utf-8'))
             filehandle.write('\\providecommand{\\url}[1]{{\\tt #1}}\n'.encode('utf-8'))
             filehandle.write('\\providecommand{\\href}[2]{#2}\n'.encode('utf-8'))
@@ -1159,7 +1162,7 @@ class Bibdata(object):
                 if (s != ''):
                     ## Need two line EOL's here and not one so that backrefs can work properly.
                     filehandle.write((s + '\n').encode('utf-8'))
-        except Exception, err:
+        except Exception as err:
             ## Swallow the exception
             print('Exception encountered: ' + repr(err))
         finally:
@@ -1320,7 +1323,7 @@ class Bibdata(object):
             templatestr = self.template_substitution(templatestr, citekey)
             ## Add the filled-in template string onto the "\bibitem{...}\n" line in front of it.
             itemstr = itemstr + templatestr
-        except SyntaxError, err:
+        except SyntaxError as err:
             itemstr = itemstr + '\\textit{' + err + '}.'
             bib_warning('Warning 013: ' + err, self.disable)
 
@@ -4707,6 +4710,20 @@ def namedict_to_formatted_namestr(namedict, options=None):
     return(namestr)
 
 ## =============================
+
+def locale_keyfunc(keyfunc):
+    """
+    Utility to sort by string with locale considerations :
+    sorted(array_of_objects, key=locale_keyfunc(attrgetter('name')))
+    
+    http://www.programcreek.com/python/example/60842/locale.strxfrm    
+    
+    """
+    def locale_wrapper(obj):
+        return locale.strxfrm(keyfunc(obj))
+    return locale_wrapper
+
+## =============================
 def argsort(seq, reverse=False):
     '''
     Return the indices for producing a sorted list.
@@ -4724,7 +4741,9 @@ def argsort(seq, reverse=False):
         The indices needed for a sorted list.
     '''
 
-    res = sorted(range(len(seq)), key=seq.__getitem__, cmp=locale.strcoll, reverse=reverse)
+#    res = sorted(range(len(seq)), key=seq.__getitem__, cmp=locale.strcoll, reverse=reverse) # TO BE DELETED 
+    res = sorted(range(len(seq)), key=locale_keyfunc(seq.__getitem__), reverse=reverse)
+    
     return(res)
 
 ## =============================
