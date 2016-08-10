@@ -5070,7 +5070,7 @@ if (__name__ == '__main__'):
     else:
         ## Use the test example input.
         arg_bibfile = './test/thiruv.bib'
-        arg_auxfile = './test/thiruv.aux'
+        arg_auxfile = './test/test_thiruv.aux'
         arg_bstfile = './templates/default.bst'
         files = [arg_bibfile, arg_auxfile, arg_bstfile]
 
