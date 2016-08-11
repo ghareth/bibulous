@@ -2,3 +2,5 @@
 *.directory
 *.egg
 *.pypirc
+test_thiruv-extract.bib
+test_thiruv.bbl

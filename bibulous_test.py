@@ -26,13 +26,20 @@ The basic approach of the tests is as follows:
 '''
 
 from __future__ import unicode_literals, print_function, division     ## for Python3 compatibility
+from io import open ## for Python3 compatibility
+
 import os
+import sys
+import platform
 import locale
 #import traceback    ## for getting full traceback info in exceptions
 #import pdb          ## put "pdb.set_trace()" at any place you want to interact with pdb
 import difflib      ## for comparing one string sequence with another
 import getopt
 from bibulous import Bibdata
+
+use_PyICU = False    # PyICU automatically used if running on Mac
+
 
 
 ## =================================================================================================
@@ -49,7 +56,8 @@ def run_test1():
     print('Running Bibulous Test #1')
 
     bibobj = Bibdata(auxfile, disable=[9,17,28,29])
-    bibobj.write_bblfile(write_preamble=True, write_postamble=True, bibsize='ZZ')
+    #bibobj.write_bblfile(write_preamble=True, write_postamble=True, bibsize='ZZ')
+    bibobj.write_bblfile(write_preamble=True, write_postamble=True, bibsize='ZZ', use_PyICU = use_PyICU)
 
     return(bblfile, target_bblfile)
 
@@ -72,7 +80,9 @@ def run_test2():
     ## If no excepts are raised when reading the BIB file or writing the BBL file, then the test passes.
     try:
         bibobj = Bibdata(auxfile, disable=[4,6,9,11,18,20,21,25,32,33])
-        bibobj.write_bblfile()
+        #bibobj.write_bblfile()
+        bibobj.write_bblfile(use_PyICU = use_PyICU)
+        
         result = True
         print('TEST #2 PASSED')
     except getopt.GetoptError as err:
@@ -92,6 +102,7 @@ def run_test3():
     authorstr = 'John W. Tukey'
     outputfile = './test/test3_authorextract.bib'
     targetfile = './test/test3_authorextract_target.bib'
+
 
     print('\n' + '='*75)
     print('Running Bibulous Test #3 for author "' + authorstr + '"')
@@ -113,29 +124,67 @@ def run_test4():
     bblfile = './test/test4.bbl'
     bstfile = './test/test4.bst'
     auxfile = './test/test4.aux'
-    target_bblfile = './test/test4_target.bbl'
+    #target_bblfile = './test/test4_target.bbl'
+    
+    ## Linux locale implementation sorts slightly differently to Windows locale implementation and ICU
+    ## Alternative test file used 
+    
+    if platform.system() == "Linux":
+        target_bblfile = './test/test4_target_linux.bbl'
+    else:
+        target_bblfile = './test/test4_target.bbl'
+    
 
     ## The default locale will be US english. Ironically, the locale argument needs to use an ASCII string, and since
     ## the default string encoding here is Unicode, we have to re-encode it manually. Later below, we will try some
     ## other locale settings.
-    if (os.name == 'posix'):
-        thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF-8'.encode('ascii','replace'))
-    elif (os.name == 'nt'):
-        thislocale = locale.setlocale(locale.LC_ALL,'usa_usa'.encode('ascii','replace'))
+    #if (os.name == 'posix'):
+        #thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF-8'.encode('ascii','replace'))
+    #elif (os.name == 'nt'):
+        #thislocale = locale.setlocale(locale.LC_ALL,'usa_usa'.encode('ascii','replace'))
+    
+    ## Also necessary to encode into ascii for Python 2, ok to use unicode for Python3
+    
+    if sys.version_info[0] == 2:
+        
+        if (os.name == 'posix'):
+            thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF-8'.encode('ascii','replace'))
+        elif (os.name == 'nt'):
+            thislocale = locale.setlocale(locale.LC_ALL,'usa_usa'.encode('ascii','replace'))
+            
+    elif sys.version_info[0] == 3:
+        
+        if (os.name == 'posix'):
+            thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF-8')
+        elif (os.name == 'nt'):
+            thislocale = locale.setlocale(locale.LC_ALL,'usa_usa')        
+    
 
     ## Need to make a list of all the citation sort options we want to try. Skip "citenum" since that is the default,
     ## and so has been tested already. Note: In the "uniquify" example below, the .upper() operator is needed to force the
     ## code to see 'b' and 'B' as being the same (and thus need a unique ending) when case-indep. sorting is being used.
     presortkeys = ['<citekey>',
-                   '[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|][<sorttitle>|<title>]',
-                   '[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>][<sortyear.zfill(4)>|<year.zfill(4)>|]',
-                   '[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|]<volume>[<sorttitle>|<title>]',
-                   '[<alphalabel>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|][<sorttitle>|<title>]',
-                   '[<alphalabel>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|]<volume>[<sorttitle>|<title>]',
-                   '[<sortyear.zfill(4)>|<year.zfill(4)>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>]',
-                   '[<sortyear.zfill(4)>|<year.zfill(4)>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>]',
+                   #'[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|][<sorttitle>|<title>]',
+                   #'[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>][<sortyear.zfill(4)>|<year.zfill(4)>|]',
+                   #'[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|]<volume>[<sorttitle>|<title>]',
+                   #'[<alphalabel>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|][<sorttitle>|<title>]',
+                   #'[<alphalabel>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|]<volume>[<sorttitle>|<title>]',
+                   #'[<sortyear.zfill(4)>|<year.zfill(4)>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>]',
+                   #'[<sortyear.zfill(4)>|<year.zfill(4)>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>]',
                    #'<author_or_editor.initial().upper().uniquify(num)>',
-                   '[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>][<sorttitle>|<title>]']
+                   #'[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>][<sorttitle>|<title>]']
+    
+                    '[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|][<sorttitle>|<title>]<citekey>',
+                    '[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>][<sortyear.zfill(4)>|<year.zfill(4)>|]<citekey>',
+                    '[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|]<volume>[<sorttitle>|<title>]<citekey>',
+                    '[<alphalabel>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|][<sorttitle>|<title>]<citekey>',
+                    '[<alphalabel>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|]<volume>[<sorttitle>|<title>]<citekey>',
+                    '[<sortyear.zfill(4)>|<year.zfill(4)>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>]<citekey>',
+                    '[<sortyear.zfill(4)>|<year.zfill(4)>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>]<citekey>',
+                    '[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>][<sorttitle>|<title>]<citekey>']
+                    
+
+    
     sortkeys = ['<presortkey.purify().lower().compress()>',
                 '<presortkey.purify().lower().compress()>',
                 '<presortkey.purify().lower().compress()>',
@@ -179,8 +228,10 @@ def run_test4():
                 filehandle.write(line)
         filehandle.close()
 
-        bibobj = Bibdata(auxfile, disable=[9], silent=(i>0))
-        bibobj.locale = thislocale
+        #bibobj = Bibdata(auxfile, disable=[9], silent=(i>0))
+        bibobj = Bibdata(auxfile, disable=[9], uselocale=thislocale, silent=(i>0))
+        #bibobj.locale = thislocale
+        
         bibobj.bibdata['preamble'] = '\n\n%% SETTING PRESORTKEY = ' + presortkey
         bibobj.bibdata['preamble'] += '\n%% SETTING SORTKEY = ' + sortkey
         #bibobj.debug = True     ## turn on debugging for citekey printing
@@ -197,7 +248,9 @@ def run_test4():
             if (sort_order_option == 'Reverse'): filehandle.write('%% SETTING SORT_ORDER = Reverse\n')
             filehandle.close()
 
-        bibobj.write_bblfile(write_preamble=write_preamble, write_postamble=write_postamble, bibsize='ZZZ')
+        #bibobj.write_bblfile(write_preamble=write_preamble, write_postamble=write_postamble, bibsize='ZZZ')
+        bibobj.write_bblfile(write_preamble=write_preamble, write_postamble=write_postamble, bibsize='ZZZ',use_PyICU = use_PyICU)
+        
 
     return(bblfile, target_bblfile)
 
@@ -215,7 +268,9 @@ def run_test5():
     print('Running Bibulous Test #5')
 
     bibobj = Bibdata(auxfile, disable=[9], debug=False)
-    bibobj.write_bblfile(write_preamble=True, write_postamble=True)
+    #bibobj.write_bblfile(write_preamble=True, write_postamble=True)
+    bibobj.write_bblfile(write_preamble=True, write_postamble=True , use_PyICU = use_PyICU)
+    
 
     return(bblfile, targetfile)
 
@@ -257,10 +312,28 @@ def run_test7():
     ## The default locale will be US english. Ironically, the locale argument needs to use an ASCII string, and since
     ## the default string encoding here is Unicode, we have to re-encode it manually. Later below, we will try some
     ## other locale settings.
-    if (os.name == 'posix'):
-        thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF-8'.encode('ascii','replace'))
-    elif (os.name == 'nt'):
-        thislocale = locale.setlocale(locale.LC_ALL,'usa_usa'.encode('ascii','replace'))
+    #if (os.name == 'posix'):
+        #thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF-8'.encode('ascii','replace'))
+    #elif (os.name == 'nt'):
+        #thislocale = locale.setlocale(locale.LC_ALL,'usa_usa'.encode('ascii','replace'))
+        
+    ## Also necessary to encode into ascii for Python 2, ok to use unicode for Python3
+        
+    if sys.version_info[0] == 2:
+        
+        if (os.name == 'posix'):
+            thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF-8'.encode('ascii','replace'))
+        elif (os.name == 'nt'):
+            thislocale = locale.setlocale(locale.LC_ALL,'usa_usa'.encode('ascii','replace'))
+            
+    elif sys.version_info[0] == 3:
+        
+        if (os.name == 'posix'):
+            thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF-8')
+        elif (os.name == 'nt'):
+            thislocale = locale.setlocale(locale.LC_ALL,'usa_usa')      
+        
+        
 
     ## Need to make a list of all the citation label options we want to try. Skip "citenum" since that is the default,
     ## and so has been tested already.
@@ -290,8 +363,10 @@ def run_test7():
                 filehandle.write(line)
         filehandle.close()
 
-        bibobj = Bibdata(auxfile, disable=[9], silent=(i>0))
-        bibobj.locale = thislocale
+        #bibobj = Bibdata(auxfile, disable=[9], silent=(i>0))
+        bibobj = Bibdata(auxfile, disable=[9], uselocale=thislocale, silent=(i>0))        
+        #bibobj.locale = thislocale
+        
         bibobj.bibdata['preamble'] = '\n\n%% SETTING CITELABEL = ' + citelabel
         #bibobj.debug = True     ## turn on debugging for citekey printing
 
@@ -303,7 +378,9 @@ def run_test7():
             filehandle.write('\n\n%% SETTING SETTING CITELABEL = ' + citelabel + '\n')
             filehandle.close()
 
-        bibobj.write_bblfile(write_preamble=write_preamble, write_postamble=write_postamble)
+        #bibobj.write_bblfile(write_preamble=write_preamble, write_postamble=write_postamble)
+        bibobj.write_bblfile(write_preamble=write_preamble, write_postamble=write_postamble, use_PyICU = use_PyICU)
+        
 
     return(bblfile, target_bblfile)
 
@@ -344,7 +421,9 @@ def run_test9():
         bibobj.filedict['bbl'] = bblfile
         write_preamble = (auxfile == auxfiles[0])
         write_postamble = (auxfile == auxfiles[-1])
-        bibobj.write_bblfile(write_preamble=write_preamble, write_postamble=write_postamble)
+        #bibobj.write_bblfile(write_preamble=write_preamble, write_postamble=write_postamble)
+        bibobj.write_bblfile(write_preamble=write_preamble, write_postamble=write_postamble, use_PyICU = use_PyICU)
+        
         print('')
 
     return(bblfile, target_bblfile)
@@ -365,8 +444,11 @@ def check_file_match(testnum, outputfile, targetfile):
 
         ## Load the actual output BBL file and the target BBL file (the former says what we got; the latter says what
         ## we *should* get). Load each into strings and calculate their difference.
-        foutput = open(file1, 'rU')
-        ftarget = open(file2, 'rU')
+        #foutput = open(file1, 'rU')
+        #ftarget = open(file2, 'rU')
+        foutput = open(file1, 'rU', encoding="utf8")  #Py3 compatible - from io import open
+        ftarget = open(file2, 'rU', encoding="utf8")  #Py3 compatible - from io import open
+        
 
         outputlines = foutput.readlines()
         targetlines = ftarget.readlines()
