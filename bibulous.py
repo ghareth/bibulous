@@ -4921,10 +4921,10 @@ def argsort(seq, reverse=False, use_PyICU = False):
 #<<<<<<< HEAD
     if (use_PyICU):
         sorting_with = "PyICU"
-        if sys.version_info[0] == 2:
-            res = sorted(range(len(seq)), key=seq.__getitem__, cmp=collator.compare, reverse=reverse)
-        elif sys.version_info[0] == 3:
-            res = sorted(range(len(seq)), key=locale_keyfunc_icu(seq.__getitem__), reverse=reverse)  
+        #if sys.version_info[0] == 2:
+            #res = sorted(range(len(seq)), key=seq.__getitem__, cmp=collator.compare, reverse=reverse)
+        #elif sys.version_info[0] == 3:
+        res = sorted(range(len(seq)), key=locale_keyfunc_icu(seq.__getitem__), reverse=reverse)  
             
     else:
         if (platform.system() == 'Darwin'):
@@ -4937,6 +4937,7 @@ def argsort(seq, reverse=False, use_PyICU = False):
             sorting_with = "locale"
             if sys.version_info[0] == 2:
                 res = sorted(range(len(seq)), key=seq.__getitem__, cmp=locale.strcoll, reverse=reverse)
+
             elif sys.version_info[0] == 3:
                 res = sorted(range(len(seq)), key=locale_keyfunc(seq.__getitem__), reverse=reverse)            
 

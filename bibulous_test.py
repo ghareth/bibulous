@@ -30,14 +30,16 @@ from io import open ## for Python3 compatibility
 
 import os
 import sys
+import platform
 import locale
 #import traceback    ## for getting full traceback info in exceptions
 #import pdb          ## put "pdb.set_trace()" at any place you want to interact with pdb
 import difflib      ## for comparing one string sequence with another
 import getopt
+
 from bibulous import Bibdata
 
-use_PyICU = False
+use_PyICU = False    # PyICU automatically used if running on Mac
 
 ## =================================================================================================
 def run_test1():
@@ -121,6 +123,15 @@ def run_test4():
     bstfile = './test/test4.bst'
     auxfile = './test/test4.aux'
     target_bblfile = './test/test4_target.bbl'
+    
+    ## Linux locale implementation sorts slightly differently to Windows locale implementation and ICU
+    ## Alternative test file used 
+    
+    if platform.system() == "Linux":
+        target_bblfile = './test/test4_target_linux.bbl'
+    else:
+        target_bblfile = './test/test4_target.bbl'
+    
 
     ## The default locale will be US english. Ironically, the locale argument needs to use an ASCII string, and since
     ## the default string encoding here is Unicode, we have to re-encode it manually. Later below, we will try some
@@ -144,15 +155,15 @@ def run_test4():
     ## and so has been tested already. Note: In the "uniquify" example below, the .upper() operator is needed to force the
     ## code to see 'b' and 'B' as being the same (and thus need a unique ending) when case-indep. sorting is being used.
     presortkeys = ['<citekey>',
-                   '[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|][<sorttitle>|<title>]',
-                   '[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>][<sortyear.zfill(4)>|<year.zfill(4)>|]',
-                   '[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|]<volume>[<sorttitle>|<title>]',
-                   '[<alphalabel>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|][<sorttitle>|<title>]',
-                   '[<alphalabel>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|]<volume>[<sorttitle>|<title>]',
-                   '[<sortyear.zfill(4)>|<year.zfill(4)>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>]',
-                   '[<sortyear.zfill(4)>|<year.zfill(4)>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>]',
+                   '[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|][<sorttitle>|<title>]<citekey>',
+                   '[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>][<sortyear.zfill(4)>|<year.zfill(4)>|]<citekey>',
+                   '[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|]<volume>[<sorttitle>|<title>]<citekey>',
+                   '[<alphalabel>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|][<sorttitle>|<title>]<citekey>',
+                   '[<alphalabel>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>|]<volume>[<sorttitle>|<title>]<citekey>',
+                   '[<sortyear.zfill(4)>|<year.zfill(4)>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>]<citekey>',
+                   '[<sortyear.zfill(4)>|<year.zfill(4)>][<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sorttitle>|<title>]<citekey>',
                    #'<author_or_editor.initial().upper().uniquify(num)>',
-                   '[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>][<sorttitle>|<title>]']
+                   '[<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>][<sorttitle>|<title>]<citekey>']
     sortkeys = ['<presortkey.purify().lower().compress()>',
                 '<presortkey.purify().lower().compress()>',
                 '<presortkey.purify().lower().compress()>',
@@ -423,23 +434,23 @@ def check_file_match(testnum, outputfile, targetfile):
 if (__name__ == '__main__'):
     suite_pass = True
     
-    if False:
+    if not False:
         ## Run test #1.
         (outputfile, targetfile) = run_test1()
         result = check_file_match(1, outputfile, targetfile)
         suite_pass *= result
 
-    if False:
+    if not False:
         ## Run test #2.
         result = run_test2()
         suite_pass *= result
+    if not False:
+        ## Run test #3.
+        (outputfile, targetfile) = run_test3()
+        result = check_file_match(3, outputfile, targetfile)
+        suite_pass *= result
 
-    ## Run test #3.
-    (outputfile, targetfile) = run_test3()
-    result = check_file_match(3, outputfile, targetfile)
-    suite_pass *= result
-
-    if False:
+    if True:
         ## Run test #4.
         (outputfile, targetfile) = run_test4()
         result = check_file_match(4, outputfile, targetfile)

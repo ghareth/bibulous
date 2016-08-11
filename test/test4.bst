@@ -1,6 +1,6 @@
 TEMPLATES:
-article = [<au>|<ed>|], \enquote{<title>} (<year>).
-incollection = [<au>|<ed.if_singular(editorlist, edmsg1, edmsg2)>|], \enquote{<title>,} [in <booktitle>, ]<publisher> (<year>).[ {\makeopenbracket}In <language>.{\makeclosebracket}]
+article = <sortkey>
+incollection = <sortkey>
 
 
 SPECIAL-TEMPLATES:
@@ -14,7 +14,7 @@ au = <authorname.0>, ...,{ and }<authorname.6>
 editorname.n = [<editorlist.n.first.initial()>. ][<editorlist.n.middle.initial()>. ][<editorlist.n.prefix> ]<editorlist.n.last>[, <editorlist.n.suffix>]
 ed = <editorname.0>, ...,{ and }<editorname.6>
 citelabel = None
-presortkey = [<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>][<sorttitle>|<title>]
+presortkey = [<sortname>|<authorlist.0.last>|<editorlist.0.last>|][<authorlist.0.first>|<editorlist.0.first>][<sortyear.zfill(4)>|<year.zfill(4)>][<sorttitle>|<title>]<citekey>
 sortkey = <presortkey.purify().compress()>
 
 
