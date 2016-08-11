@@ -26,7 +26,10 @@ The basic approach of the tests is as follows:
 '''
 
 from __future__ import unicode_literals, print_function, division     ## for Python3 compatibility
+from io import open ## for Python3 compatibility
+
 import os
+import sys
 import locale
 #import traceback    ## for getting full traceback info in exceptions
 #import pdb          ## put "pdb.set_trace()" at any place you want to interact with pdb
@@ -34,6 +37,7 @@ import difflib      ## for comparing one string sequence with another
 import getopt
 from bibulous import Bibdata
 
+use_PyICU = False
 
 ## =================================================================================================
 def run_test1():
@@ -49,7 +53,7 @@ def run_test1():
     print('Running Bibulous Test #1')
 
     bibobj = Bibdata(auxfile, disable=[9,17,28,29])
-    bibobj.write_bblfile(write_preamble=True, write_postamble=True, bibsize='ZZ')
+    bibobj.write_bblfile(write_preamble=True, write_postamble=True, bibsize='ZZ', use_PyICU = use_PyICU)
 
     return(bblfile, target_bblfile)
 
@@ -72,7 +76,7 @@ def run_test2():
     ## If no excepts are raised when reading the BIB file or writing the BBL file, then the test passes.
     try:
         bibobj = Bibdata(auxfile, disable=[4,6,9,11,18,20,21,25,32,33])
-        bibobj.write_bblfile()
+        bibobj.write_bblfile(use_PyICU = use_PyICU)
         result = True
         print('TEST #2 PASSED')
     except getopt.GetoptError as err:
@@ -91,7 +95,10 @@ def run_test3():
     auxfile = './test/test2.aux'        ## re-use the huge database
     authorstr = 'John W. Tukey'
     outputfile = './test/test3_authorextract.bib'
-    targetfile = './test/test3_authorextract_target.bib'
+    if sys.version_info[0] == 2:
+        targetfile = './test/test3_authorextract_target.bib'
+    elif sys.version_info[0] == 3:
+        targetfile = './test/test3_authorextract_target.bib'
 
     print('\n' + '='*75)
     print('Running Bibulous Test #3 for author "' + authorstr + '"')
@@ -118,10 +125,20 @@ def run_test4():
     ## The default locale will be US english. Ironically, the locale argument needs to use an ASCII string, and since
     ## the default string encoding here is Unicode, we have to re-encode it manually. Later below, we will try some
     ## other locale settings.
-    if (os.name == 'posix'):
-        thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF-8'.encode('ascii','replace'))
-    elif (os.name == 'nt'):
-        thislocale = locale.setlocale(locale.LC_ALL,'usa_usa'.encode('ascii','replace'))
+
+    if sys.version_info[0] == 2:
+        
+        if (os.name == 'posix'):
+            thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF-8'.encode('ascii','replace'))
+        elif (os.name == 'nt'):
+            thislocale = locale.setlocale(locale.LC_ALL,'usa_usa'.encode('ascii','replace'))
+            
+    elif sys.version_info[0] == 3:
+        
+        if (os.name == 'posix'):
+            thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF-8')
+        elif (os.name == 'nt'):
+            thislocale = locale.setlocale(locale.LC_ALL,'usa_usa')        
 
     ## Need to make a list of all the citation sort options we want to try. Skip "citenum" since that is the default,
     ## and so has been tested already. Note: In the "uniquify" example below, the .upper() operator is needed to force the
@@ -197,7 +214,7 @@ def run_test4():
             if (sort_order_option == 'Reverse'): filehandle.write('%% SETTING SORT_ORDER = Reverse\n')
             filehandle.close()
 
-        bibobj.write_bblfile(write_preamble=write_preamble, write_postamble=write_postamble, bibsize='ZZZ')
+        bibobj.write_bblfile(write_preamble=write_preamble, write_postamble=write_postamble, bibsize='ZZZ',use_PyICU = use_PyICU)
 
     return(bblfile, target_bblfile)
 
@@ -215,7 +232,7 @@ def run_test5():
     print('Running Bibulous Test #5')
 
     bibobj = Bibdata(auxfile, disable=[9], debug=False)
-    bibobj.write_bblfile(write_preamble=True, write_postamble=True)
+    bibobj.write_bblfile(write_preamble=True, write_postamble=True , use_PyICU = use_PyICU)
 
     return(bblfile, targetfile)
 
@@ -257,11 +274,20 @@ def run_test7():
     ## The default locale will be US english. Ironically, the locale argument needs to use an ASCII string, and since
     ## the default string encoding here is Unicode, we have to re-encode it manually. Later below, we will try some
     ## other locale settings.
-    if (os.name == 'posix'):
-        thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF-8'.encode('ascii','replace'))
-    elif (os.name == 'nt'):
-        thislocale = locale.setlocale(locale.LC_ALL,'usa_usa'.encode('ascii','replace'))
-
+    if sys.version_info[0] == 2:
+        
+        if (os.name == 'posix'):
+            thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF-8'.encode('ascii','replace'))
+        elif (os.name == 'nt'):
+            thislocale = locale.setlocale(locale.LC_ALL,'usa_usa'.encode('ascii','replace'))
+            
+    elif sys.version_info[0] == 3:
+        
+        if (os.name == 'posix'):
+            thislocale = locale.setlocale(locale.LC_ALL,'en_US.UTF-8')
+        elif (os.name == 'nt'):
+            thislocale = locale.setlocale(locale.LC_ALL,'usa_usa')      
+            
     ## Need to make a list of all the citation label options we want to try. Skip "citenum" since that is the default,
     ## and so has been tested already.
     citelabels = ['<citekey>',
@@ -302,7 +328,7 @@ def run_test7():
             filehandle.write('\n\n%% SETTING SETTING CITELABEL = ' + citelabel + '\n')
             filehandle.close()
 
-        bibobj.write_bblfile(write_preamble=write_preamble, write_postamble=write_postamble)
+        bibobj.write_bblfile(write_preamble=write_preamble, write_postamble=write_postamble, use_PyICU = use_PyICU)
 
     return(bblfile, target_bblfile)
 
@@ -343,7 +369,7 @@ def run_test9():
         bibobj.filedict['bbl'] = bblfile
         write_preamble = (auxfile == auxfiles[0])
         write_postamble = (auxfile == auxfiles[-1])
-        bibobj.write_bblfile(write_preamble=write_preamble, write_postamble=write_postamble)
+        bibobj.write_bblfile(write_preamble=write_preamble, write_postamble=write_postamble, use_PyICU = use_PyICU)
         print('')
 
     return(bblfile, target_bblfile)
@@ -364,14 +390,16 @@ def check_file_match(testnum, outputfile, targetfile):
 
         ## Load the actual output BBL file and the target BBL file (the former says what we got; the latter says what
         ## we *should* get). Load each into strings and calculate their difference.
-        foutput = open(file1, 'rU')
-        ftarget = open(file2, 'rU')
+        foutput = open(file1, 'rU', encoding="utf8")
+        ftarget = open(file2, 'rU', encoding="utf8")
 
         outputlines = foutput.readlines()
         targetlines = ftarget.readlines()
 
         foutput.close()
         ftarget.close()
+        
+        outputlines = outputlines
 
         #diffobj = difflib.ndiff(outputlines, targetlines, lineterm='')
         diffobj = difflib.unified_diff(outputlines, targetlines, lineterm='')
@@ -394,25 +422,28 @@ def check_file_match(testnum, outputfile, targetfile):
 ## ==================================================================================================
 if (__name__ == '__main__'):
     suite_pass = True
+    
+    if False:
+        ## Run test #1.
+        (outputfile, targetfile) = run_test1()
+        result = check_file_match(1, outputfile, targetfile)
+        suite_pass *= result
 
-    ## Run test #1.
-    (outputfile, targetfile) = run_test1()
-    result = check_file_match(1, outputfile, targetfile)
-    suite_pass *= result
-
-    ## Run test #2.
-    result = run_test2()
-    suite_pass *= result
+    if False:
+        ## Run test #2.
+        result = run_test2()
+        suite_pass *= result
 
     ## Run test #3.
     (outputfile, targetfile) = run_test3()
     result = check_file_match(3, outputfile, targetfile)
     suite_pass *= result
 
-    ## Run test #4.
-    (outputfile, targetfile) = run_test4()
-    result = check_file_match(4, outputfile, targetfile)
-    suite_pass *= result
+    if False:
+        ## Run test #4.
+        (outputfile, targetfile) = run_test4()
+        result = check_file_match(4, outputfile, targetfile)
+        suite_pass *= result
 
     ## Run test #5.
     (outputfile, targetfile) = run_test5()

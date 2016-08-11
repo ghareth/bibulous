@@ -7,6 +7,7 @@
 
 from __future__ import unicode_literals, print_function, division
 from builtins import str as unicode
+from builtins import range
 from past.builtins import basestring
 
 import re
@@ -18,9 +19,16 @@ import getopt       ## for getting command-line options
 import copy         ## for the "deepcopy" command
 import platform     ## for determining the OS of the system
 from pprint import pprint       # for debugging
-
-if (platform.system() == 'Darwin'):
+try:
     import PyICU
+    pyicu_imported = True
+    print ("PyICU installed")
+except:
+    print ("PyICU not installed")
+    pyicu_imported = False
+
+sorting_with = False
+
 #import pdb          ## put "pdb.set_trace()" at any place you want to interact with pdb
 #import traceback    ## for getting full traceback info in exceptions
 
@@ -214,9 +222,13 @@ class Bibdata(object):
             self.locale = locale.setlocale(locale.LC_ALL,'') ## set the locale to the user's default
             uselocale = 'C'
         else:
-            self.locale = locale.setlocale(locale.LC_ALL,uselocale)    ## set the locale to the user's default
-            
-        if (platform.system() == 'Darwin'):
+            if sys.version_info[0]==2:
+                uselocale = uselocale.encode('ascii','replace')
+                self.locale = locale.setlocale(locale.LC_ALL,uselocale)    ## set the locale to the user's default
+            elif sys.version_info[0] ==3:
+                self.locale = locale.setlocale(locale.LC_ALL,uselocale)
+                
+        if (pyicu_imported):
             global collator
             collator = PyICU.Collator.createInstance(PyICU.Locale(uselocale.partition('.')[0]))
         
@@ -385,7 +397,7 @@ class Bibdata(object):
                 self.parse_bibfile(self.filedict['extract'])  ## Parse extracted .bib file
             else:
                 if self.culldata:
-                    self.searchkeys = self.citedict.keys()
+                    self.searchkeys = list(self.citedict)
                 for f in self.filedict['bib']:
                     self.parse_bibfile(f)                     ## Parse full .bib file
                 if self.culldata:
@@ -560,7 +572,7 @@ class Bibdata(object):
             ## Acronym entrytypes have an identical form to "string" types, but we map them into a dictionary like a
             ## regular field, so we can access them as regular database entries.
             fd = self.parse_bibfield(entrystr)
-            entrykey = fd.keys()[0]
+            entrykey = list(fd)[0]
             newentry = {'name':entrykey, 'description':fd[entrykey], 'entrytype':'acronym'}
             if (entrykey in self.bibdata):
                 bib_warning('Warning 032b: line#' + unicode(self.i) + ' of "' + self.filename +
@@ -1107,7 +1119,7 @@ class Bibdata(object):
         return
 
     ## =============================
-    def write_bblfile(self, filename=None, write_preamble=True, write_postamble=True, bibsize=None, debug=False):
+    def write_bblfile(self, filename=None, write_preamble=True, write_postamble=True, bibsize=None, debug=False, use_PyICU = False):
         '''
         Given a bibliography database `bibdata`, a dictionary containing the citations called out `citedict`, and a
         bibliography style template `bstdict` write the LaTeX-format file for the formatted bibliography.
@@ -1129,6 +1141,12 @@ class Bibdata(object):
         bibsize : str, optional
             A string the length of which is used to determine the label margin for the bibliography.
         '''
+
+        if (platform.system() == 'Darwin') and (pyicu_imported == True):
+            use_PyICU = True
+            
+        if (not pyicu_imported):
+            use_PyICU = False
 
         if (filename == None):
             filename = self.filedict['bbl']
@@ -1181,7 +1199,7 @@ class Bibdata(object):
     
                 ## Define a list which contains the citation keys, sorted in the order in which we need for writing into
                 ## the BBL file.
-                self.create_citation_list()
+                self.create_citation_list(use_PyICU)
     
                 if ('<citealnum' in self.specials['citelabel']):
                     alphanums = create_alphanum_citelabels(c, self.bibdata, self.citelist)
@@ -1229,7 +1247,7 @@ class Bibdata(object):
 
             ## Define a list which contains the citation keys, sorted in the order in which we need for writing into
             ## the BBL file.
-            self.create_citation_list()
+            self.create_citation_list(use_PyICU = use_PyICU)
 
             if ('<citealnum' in self.specials['citelabel']):
                 alphanums = create_alphanum_citelabels(c, self.bibdata, self.citelist)
@@ -1259,11 +1277,11 @@ class Bibdata(object):
             filehandle.close()
 
 
-
+        print ("Sorting with"+sorting_with)
         return
 
     ## ===================================
-    def create_citation_list(self):
+    def create_citation_list(self, use_PyICU = False):
         '''
         Create the list of citation keys, sorted into the proper order.
         '''
@@ -1295,12 +1313,12 @@ class Bibdata(object):
             pos_citekeys = [self.citelist[x] for x in pos_idx]
             neg_citekeys = [self.citelist[x] for x in neg_idx]
 
-            pos_idx = argsort(pos_sortkeys)
-            neg_idx = argsort(neg_sortkeys, reverse=True)
+            pos_idx = argsort(pos_sortkeys, use_PyICU = use_PyICU)
+            neg_idx = argsort(neg_sortkeys, reverse=True, use_PyICU = use_PyICU)
             self.sortlist = [neg_sortkeys[x] for x in neg_idx] + [pos_sortkeys[x] for x in pos_idx]
             self.citelist = [neg_citekeys[x] for x in neg_idx] + [pos_citekeys[x] for x in pos_idx]
         else:
-            idx = argsort(self.sortlist)
+            idx = argsort(self.sortlist, use_PyICU = use_PyICU)
             self.sortlist = [self.sortlist[x] for x in idx]
             self.citelist = [self.citelist[x] for x in idx]
 
@@ -1755,7 +1773,7 @@ class Bibdata(object):
             auxfile = os.path.normpath(os.path.abspath(filename))
             path = os.path.normpath(os.path.dirname(auxfile))
 
-            s = open(filename, 'rU')
+            s = open(filename, 'rUb')
             for line in s.readlines():
                 line = line.decode('utf-8').strip()
                 if line.startswith('%'): continue
@@ -2924,11 +2942,11 @@ class Bibdata(object):
 #                    return(newfield)
 #                else:
 #                    return(self.get_indexed_variable(newfield, newindexer, entrykey, options=options))
-            #else:
-            #    msg = 'Warning 029c: the template for entry ' + entrykey + ' has an unknown function ' + \
-            #          '"' + index_elements[0] + '". Aborting template substitution'
-            #    bib_warning(msg, disable=self.disable)
-            #    return(None)
+            else:
+                msg = 'Warning 029c: the template for entry ' + entrykey + ' has an unknown function ' + \
+                      '"' + index_elements[0] + '". Aborting template substitution'
+                bib_warning(msg, disable=self.disable)
+                return(None)
 
         ## If the indexer is a numerical range...
         if re.search(r'^.-?\d*:-?\d*', indexer, re.UNICODE):
@@ -3086,9 +3104,9 @@ def stringsplit(s, sep=r' |(?<!\\)~'):
             tokens.append(s[:indices[0][0]])
 
         ## Go through each match's indices and split the string at each.
-        for n in xrange(ntokens):
+        for n in range(ntokens):
             if (n == ntokens-1):
-                j = indices[n][1]            ## the end of *this* separator
+                j = indices[n][1]            ## the end of *this* separtor
                 tokens.append(s[j:])
             else:
                 nexti = indices[n+1][0]      ## the beginning of the *next* separator
@@ -3120,7 +3138,7 @@ def brace_split(string, splitter=" "):
         splits.append(string[:separators[0][0]].strip())
 
     ## Go through each match's indices and split the string at each.
-    for n in xrange(num_splits):
+    for n in range(num_splits):
         if (n == num_splits-1):
             j = separators[n][1]            ## the end of *this* separator
             splits.append(string[j:].strip())
@@ -3200,7 +3218,7 @@ def namefield_to_namelist(namefield, key=None, sep='and', disable=None):
                 names.append(namefield[:separators[0][0]].strip())
 
             ## Go through each match's indices and split the string at each.
-            for n in xrange(num_names):
+            for n in range(num_names):
                 if (n == num_names-1):
                     j = separators[n][1]            ## the end of *this* separator
                     names.append(namefield[j:].strip())
@@ -4038,7 +4056,7 @@ def brace_split(string, splitter=" "):
         splits.append(string[:separators[0][0]].strip())
 
     ## Go through each match's indices and split the string at each.
-    for n in xrange(num_splits):
+    for n in range(num_splits):
         if (n == num_splits-1):
             j = separators[n][1]            ## the end of *this* separator
             splits.append(string[j:].strip())
@@ -4217,10 +4235,16 @@ def namestr_to_namedict(namestr, disable=None):
 
     ## Finally, go through and remove any name elements that are blank. Use "key in namedict.keys()" rather than
     ## "key in namedict" here because we want to be able to change the dictionary in the loop.
+    ## Not possible to delete dictionary items whilst looping in Python 3
+    
+    keys_to_del = []
     for key in namedict.keys():
         if (namedict[key].strip() == ''):
-            del namedict[key]
-
+            keys_to_del.append(key)
+            
+    for key in keys_to_del:
+        del namedict[key]
+        
     return(namedict)
 
 ## ===================================
@@ -4338,8 +4362,10 @@ def export_bibfile(bibdata, filename, abbrevs=None):
         for abbrev in abbrevs:
             filehandle.write('@STRING{' + abbrev + ' = ' + abbrevs[abbrev] + '}\n')
         filehandle.write('\n')
+        
+    keys = sorted(list(bibdata))
 
-    for key in bibdata:
+    for key in keys:
         if (key == 'preamble'): continue
 
         ## Since you're about to delete an item from the "entry" dictionary, and it is a view into the main database
@@ -4350,8 +4376,10 @@ def export_bibfile(bibdata, filename, abbrevs=None):
         del entry['entrytype']
         nkeys = len(entry.keys())
 
+        fields = sorted(list(entry))
+        
         ## Write out the entries.
-        for i,k in enumerate(entry):
+        for i,k in enumerate(fields):
             filehandle.write('  ' + k + ' = {' + unicode(entry[k]) + '}')
 
             ## If this is the last field in the dictionary, then do not end the line with a trailing comma.
@@ -4856,10 +4884,24 @@ def locale_keyfunc(keyfunc):
         return locale.strxfrm(keyfunc(obj))
     return locale_wrapper
 
+def locale_keyfunc_icu(keyfunc):
+    """
+    Utility to sort by string with locale considerations :
+    sorted(array_of_objects, key=locale_keyfunc(attrgetter('name')))
+    
+    http://www.programcreek.com/python/example/60842/locale.strxfrm    
+    
+    """
+    def locale_wrapper(obj):
+        return collator.getSortKey(keyfunc(obj))
+    return locale_wrapper
+
+
+
 
 ## =============================
 
-def argsort(seq, reverse=False):
+def argsort(seq, reverse=False, use_PyICU = False):
     '''
     Return the indices for producing a sorted list.
 
@@ -4875,19 +4917,37 @@ def argsort(seq, reverse=False):
     idx : list of ints
         The indices needed for a sorted list.
     '''
-
+    global sorting_with
 #<<<<<<< HEAD
-    if (platform.system() == 'Darwin'):
-        res = sorted(range(len(seq)), key=seq.__getitem__, cmp=collator.compare, reverse=reverse)
+    if (use_PyICU):
+        sorting_with = "PyICU"
+        if sys.version_info[0] == 2:
+            res = sorted(range(len(seq)), key=seq.__getitem__, cmp=collator.compare, reverse=reverse)
+        elif sys.version_info[0] == 3:
+            res = sorted(range(len(seq)), key=locale_keyfunc_icu(seq.__getitem__), reverse=reverse)  
+            
     else:
-        res = sorted(range(len(seq)), key=seq.__getitem__, cmp=locale.strcoll, reverse=reverse)
+        if (platform.system() == 'Darwin'):
+            sorting_with = "Unicode"
+            if sys.version_info[0] == 2:
+                res = sorted(range(len(seq)), reverse=reverse)
+            elif sys.version_info[0] == 3:
+                res = sorted(range(len(seq)), reverse=reverse)
+        else:
+            sorting_with = "locale"
+            if sys.version_info[0] == 2:
+                res = sorted(range(len(seq)), key=seq.__getitem__, cmp=locale.strcoll, reverse=reverse)
+            elif sys.version_info[0] == 3:
+                res = sorted(range(len(seq)), key=locale_keyfunc(seq.__getitem__), reverse=reverse)            
+
+    return (res)
 
 #=======
 ##   res = sorted(range(len(seq)), key=seq.__getitem__, cmp=locale.strcoll, reverse=reverse) # TO BE DELETED 
 #   res = sorted(range(len(seq)), key=locale_keyfunc(seq.__getitem__), reverse=reverse) # Need to check out if locale works in Python3
     
 #>>>>>>> Python3_compatible
-    return(res)
+
 
 ## =============================
 def create_alphanum_citelabels(entrykey, bibdata, citelist):
@@ -5047,7 +5107,12 @@ def get_implicit_loop_data(templatestr):
 
 if (__name__ == '__main__'):
     print('sys.argv=', sys.argv)
-    user_locale = 'en_US.UTF-8'.encode('ascii','replace')
+    
+    if (os.name == 'posix'):
+        user_locale = 'en_US.UTF-8'
+    elif (os.name == 'nt'):
+        user_locale = 'usa_usa'
+
     if (len(sys.argv) > 1):
         try:
             (opts, args) = getopt.getopt(sys.argv[1:], '', ['locale='])
@@ -5082,7 +5147,7 @@ if (__name__ == '__main__'):
     ## them, and it's probably true that there is no bibliography requested. That is, Bibulous was called without any
     ## need.
     if main_bibdata.filedict and main_bibdata.citedict:
-        main_bibdata.write_bblfile()
+        main_bibdata.write_bblfile(use_PyICU=True)
         print('Writing to BBL file = ' + main_bibdata.filedict['bbl'])
         #os.system('kwrite ' + main_bibdata.filedict['bbl'])
         print('DONE')
