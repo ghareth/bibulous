@@ -37,6 +37,8 @@ import locale
 import difflib      ## for comparing one string sequence with another
 import getopt
 
+from pprint import pprint
+
 from bibulous import Bibdata
 
 use_PyICU = False    # PyICU automatically used if running on Mac
@@ -209,8 +211,8 @@ def run_test4():
 
         bibobj = Bibdata(auxfile, disable=[9], uselocale=thislocale, silent=(i>0))
         
-        bibobj.bibdata['preamble'] = '\n\n%% SETTING PRESORTKEY = ' + presortkey
-        bibobj.bibdata['preamble'] += '\n%% SETTING SORTKEY = ' + sortkey
+        bibobj.bib.data['preamble'] = '\n\n%% SETTING PRESORTKEY = ' + presortkey
+        bibobj.bib.data['preamble'] += '\n%% SETTING SORTKEY = ' + sortkey
         #bibobj.debug = True     ## turn on debugging for citekey printing
         print('Setting PRESORTKEY = ' + presortkey)
         print('Setting SORTKEY = ' + sortkey)
@@ -328,7 +330,7 @@ def run_test7():
         filehandle.close()
 
         bibobj = Bibdata(auxfile, disable=[9], uselocale=thislocale, silent=(i>0))
-        bibobj.bibdata['preamble'] = '\n\n%% SETTING CITELABEL = ' + citelabel
+        bibobj.bib.data['preamble'] = '\n\n%% SETTING CITELABEL = ' + citelabel
         #bibobj.debug = True     ## turn on debugging for citekey printing
 
         print('Setting citation_label = ' + citelabel)
@@ -433,6 +435,16 @@ def check_file_match(testnum, outputfile, targetfile):
 ## ==================================================================================================
 if (__name__ == '__main__'):
     suite_pass = True
+    
+    auxfile = './test/test5.aux'
+    bblfile = './test/test5.bbl'
+    targetfile = './test/test5_target.bbl'
+
+    print('\n' + '='*75)
+    print('Running Bibulous Test #5')
+
+    bibobj = Bibdata(auxfile, disable=[9], debug=False)
+    bibobj.write_bblfile(write_preamble=True, write_postamble=True , use_PyICU = use_PyICU)   
     
     if not False:
         ## Run test #1.

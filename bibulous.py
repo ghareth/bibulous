@@ -12,6 +12,9 @@ from past.builtins import basestring
 
 import re
 import os
+import stat
+import time
+
 import sys
 import codecs       ## for importing UTF8-encoded files
 import locale       ## for language internationalization and localization
@@ -26,7 +29,12 @@ try:
 except:
     print ("PyICU not installed")
     pyicu_imported = False
-
+    
+import bibulous_tools as bibtools
+from bibulous_bib import Bib
+from bibulous_bst import Bst
+from bibulous_tools import get_delim_levels
+from bibulous_tools import get_variable_name_elements
 sorting_with = False
 
 #import pdb          ## put "pdb.set_trace()" at any place you want to interact with pdb
@@ -82,6 +90,7 @@ __all__ = ['sentence_case', 'stringsplit', 'namefield_to_namelist', 'namestr_to_
            'parse_nameabbrev', 'filter_script', 'str_is_integer', 'bib_warning', 'create_citation_alpha',
            'toplevel_split', 'get_variable_name_elements', 'get_names', 'format_namelist',
            'namedict_to_formatted_namestr', 'argsort', 'create_alphanum_citelabels','get_implicit_loop_data']
+
 
 
 class Bibdata(object):
@@ -194,29 +203,12 @@ class Bibdata(object):
             Handle different style template file overriding style template in .aux file
         '''
         
-        self.debug = debug
-        self.abbrevs = {'jan':'1', 'feb':'2', 'mar':'3', 'apr':'4', 'may':'5', 'jun':'6',
-                        'jul':'7', 'aug':'8', 'sep':'9', 'oct':'10', 'nov':'11', 'dec':'12'}
-        self.bibdata = {'preamble':''}
-        self.filedict = {}          ## the dictionary containing all of the files associated with the bibliography
-        self.citedict = {}          ## the dictionary containing the original data from the AUX file
-        self.citelist = []          ## the list of citation keys, given in the order determined by "self.sortlist"
-        self.sortlist = []          ## the (sorted) list of sorting keys
-        self.bstdict = {}           ## the dictionary containing all information from template files
-        self.user_script = ''       ## any user-written Python scripts go here
-        self.user_variables = {}    ## any user-defined variables from the BST files
+        ## On default initialization, we don't want to issue any warnings about "overwriting" the default options. So
+        ## if no "default" keyword is given, then turn off warning #9.
+        self.disable = [9] if (disable == None)  else disable  
+        
         self.culldata = culldata    ## whether to cull the database so that only cited entries are parsed
-        self.searchkeys = []        ## when culling data, this is the list of keys to limit parsing to
-        self.parse_only_entrykeys = False  ## don't parse the data in the database; get only entrykeys
-        self.nested_templates = []  ## which templates have nested option blocks
-        self.looped_templates = {} #['au','ed']  ## which templates have implicit loops
-        self.implicitly_indexed_vars = ['authorname','editorname'] ## which templates have implicit indexing
-        self.namelists = []         ## the namelists defined within the templates
-        self.uniquify_vars = {}     ## dict containing all variables calling the "uniquify" operator
-        self.keylist = []           ## "keylist" is just a temporary holding place for the citations
-        self.auxfile_list = []      ## a list of *.aux files, for use when citations are inside nested files
-        self.style_override = style ## this style will override style file derived from filename 
-
+                                    ## culldata is used in conjunction with searchkeys to only parse required entries
 
         if (uselocale == None):
             self.locale = locale.setlocale(locale.LC_ALL,'') ## set the locale to the user's default
@@ -227,10 +219,37 @@ class Bibdata(object):
                 self.locale = locale.setlocale(locale.LC_ALL,uselocale)    ## set the locale to the user's default
             elif sys.version_info[0] ==3:
                 self.locale = locale.setlocale(locale.LC_ALL,uselocale)
-                
+
+        self.debug = debug
+        
+        self.parse_only_entrykeys = False  ## don't parse the data in the database; get only entrykeys        
+        
+        self.abbrevs = {'jan':'1', 'feb':'2', 'mar':'3', 'apr':'4', 'may':'5', 'jun':'6',
+                        'jul':'7', 'aug':'8', 'sep':'9', 'oct':'10', 'nov':'11', 'dec':'12'}
+       
+        
+        self.filedict = {}          ## the dictionary containing all of the files associated with the bibliography
+        self.citedict = {}          ## the dictionary containing the original data from the AUX file
+        self.citelist = []          ## the list of citation keys, given in the order determined by "self.sortlist"
+        self.sortlist = []          ## the (sorted) list of sorting keys
+        #self.bst.bstdict = {}           ## the dictionary containing all information from template files
+        self.user_script = ['']       ## any user-written Python scripts go here
+        self.user_variables = {}    ## any user-defined variables from the BST files
+        
+        self.searchkeys = []        ## when culling data, this is the list of keys to limit parsing to
+       
+        self.nested_templates = []  ## which templates have nested option blocks
+        self.looped_templates = {} #['au','ed']  ## which templates have implicit loops
+        self.implicitly_indexed_vars = ['authorname','editorname'] ## which templates have implicit indexing
+        self.namelists = []         ## the namelists defined within the templates
+        self.uniquify_vars = {}     ## dict containing all variables calling the "uniquify" operator
+        self.keylist = []           ## "keylist" is just a temporary holding place for the citations
+        self.auxfile_list = []      ## a list of *.aux files, for use when citations are inside nested files
+        self.style_override = style ## this style will override style file derived from filename 
+
+
         if (pyicu_imported):
-            global collator
-            collator = PyICU.Collator.createInstance(PyICU.Locale(uselocale.partition('.')[0]))
+            self.collator = PyICU.Collator.createInstance(PyICU.Locale(uselocale.partition('.')[0]))
         
 
         ## Not only do we need a dictionary for "special templates" but we also need to be able to iterate through it
@@ -238,93 +257,23 @@ class Bibdata(object):
         self.specials_list = []
 
         ## Put in the default special templates.
-        self.specials = {}
-        self.specials['authorlist'] = '<author.to_namelist()>'
-        self.specials['editorlist'] = '<editor.to_namelist()>'
-        self.specials['citelabel'] = '<citenum>'
-        self.specials['sortkey'] = '<citenum>'
-        self.specials['au'] = '<authorlist.format_authorlist()>'
-        self.specials['ed'] = '<editorlist.format_editorlist()>'
+        self.specials = copy.deepcopy(bibtools.default_specials)
 
         ## Temporary variables for use in error messages while parsing files.
         self.filename = ''                      ## the current filename (for error messages)
         self.i = 0                              ## counter for line in file (for error messages)
 
-        ## On default initialization, we don't want to issue any warnings about "overwriting" the default options. So
-        ## if no "default" keyword is given, then turn off warning #9.
-        if (disable == None):
-            self.disable = [9]
-        else:
-            self.disable = disable              ## the list of warning message numbers to disable
-
         ## Put in default options settings.
-        self.options = {}
-        self.options['use_abbrevs'] = True
-        self.options['undefstr'] = '???'
-        self.options['procspie_as_journal'] = False
-        self.options['backrefstyle'] = 'none'
-        self.options['backrefs'] = False
-        self.options['sort_case'] = True
-        self.options['bibitemsep'] = None
-        self.options['allow_scripts'] = False
-        self.options['case_sensitive_field_names'] = False
-        self.options['use_citeextract'] = True
-        self.options['etal_message'] = ', \\textit{et al.}'
-        self.options['edmsg1'] = ', ed.'
-        self.options['edmsg2'] = ', eds'
-        self.options['replace_newlines'] = True
-        self.options['sort_order'] = 'Forward'
-        self.options['wrap_nested_quotes'] = False
-        self.options['autocomplete_doi'] = False
-        self.options['name_separator'] = 'and'
+        self.options = copy.deepcopy(bibtools.default_options)
 
-        ## These options all relate to the default name formatting (the more rigid namelist formatting that does not use
-        ## the implicit indexing and implicit loop structures).
-        self.options['use_firstname_initials'] = True
-        self.options['namelist_format'] = 'first_name_first'
-        self.options['maxauthors'] = 9
-        self.options['minauthors'] = 9
-        self.options['maxeditors'] = 5
-        self.options['mineditors'] = 5
-        self.options['use_name_ties'] = False
-        self.options['terse_inits'] = False
-        self.options['french_initials'] = False
-        self.options['period_after_initial'] = True
+        ## Create two inverse dictionaries for the month names and month abbreviations 
+        self.monthnames, self.monthabbrevs = bibtools.generate_inverse_month_names()
 
-        ## Compile some patterns for use in regex searches. Note that "[\-\+\*\#\$\w]" matches any alphanumeric character plus any of [~@%&-+*#$^?!=:]
-        pat = r'[~@%&\-\+\*\#\$\^\?\!\=\:\w]+?'
-        self.anybrace_pattern = re.compile(r'(?<!\\)[{}]', re.UNICODE)
-        self.startbrace_pattern = re.compile(r'(?<!\\){', re.UNICODE)
-        self.endbrace_pattern = re.compile(r'(?<!\\)}', re.UNICODE)
-        self.quote_pattern = re.compile(r'(?<!\\)"', re.UNICODE)
-        self.abbrevkey_pattern = re.compile(r'(?<!\\)[,#]', re.UNICODE)
-        self.anybraceorquote_pattern = re.compile(r'(?<!\\)[{}"]', re.UNICODE)
-        self.integer_pattern = re.compile(r'^-?[0-9]+', re.UNICODE)
-        self.index_pattern = re.compile(r'(<'+pat+r'\.\d+\.'+pat+r'>)|(<'+pat+r'\.\d+>)|(<'+pat+r'\.(nN)\.'+pat+r'>)|('+pat+r'\.(nN)>)', re.UNICODE)
-        self.implicit_index_pattern = re.compile(r'(<'+pat+r'\.n\.'+pat+r'>)|(<'+pat+r'\.n>)', re.UNICODE)
-        self.template_variable_pattern = re.compile(r'(?<=<)\.+?(?=>)', re.UNICODE)
-        self.namelist_variable_pattern = re.compile(r'(?<=<)\.+?(?=.to_namelist\(\)>)', re.UNICODE)
-
-        ## Create an inverse dictionary for the month names --- one version will full names, and one with abbreviated
-        ## names. For a Unix-based system, the month names are determined by the user's default locale. How to do this
-        ## for a MS Windows system?
-        self.monthnames = {}
-        self.monthabbrevs = {}
-        for i in range(1,13):
-            if not (platform.system() == 'Windows'):
-                ## The abbreviated form (i.e. 'Jan').
-                self.monthabbrevs[unicode(i)] = locale.nl_langinfo(locale.__dict__['ABMON_'+unicode(i)]).title()
-            elif (platform.system() == 'Windows'):
-                self.monthabbrevs = {'1':'Jan', '2':'Feb', '3':'Mar', '4':'Apr', '5':'May', '6':'Jun',
-                                     '7':'Jul', '8':'Aug', '9':'Sep', '10':'Oct', '11':'Nov', '12':'Dec'}
-
-            if (platform.system() == 'Windows'):
-                self.monthnames = {'1':'January', '2':'February', '3':'March', '4':'April',
-                                   '5':'May', '6':'June', '7':'July', '8':'August', '9':'September',
-                                   '10':'October', '11':'November', '12':'December'}
-            else:
-                ## The full form (i.e. 'January').
-                self.monthnames[unicode(i)] = locale.nl_langinfo(locale.__dict__['MON_'+unicode(i)]).title()
+        ## Instantiate an object for containing parsed bib file data        
+        self.bib = Bib(self.disable)
+        
+        ## Instantiate an object for containing parsed bst file data        
+        self.bst = Bst(self.disable, self.debug)        
 
         ## Get the list of filenames associated with the bibliography (AUX, BBL, BIB, TEX). Additionally, if the input
         ## "filename" contains only the AUX file, then we assume that the user wants only to parse that part if the
@@ -336,24 +285,20 @@ class Bibdata(object):
 
         ## Print out some info on Bibulous and the files it is working on.
         if not silent:
-            print('This is Bibulous, version ' + unicode(__version__))
-            print('The current working directory is: ' + os.getcwd())
-            print('The top-level TeX file: ' + unicode(self.filedict['tex']))
-            print('The top-level auxiliary file: ' + unicode(self.filedict['aux']))
-            print('The bibliography database file(s): ' + unicode(self.filedict['bib']))
-            print('The Bibulous style template file(s): ' + unicode(self.filedict['bst']))
-            print('The output formatted bibliography file: ' + unicode(self.filedict['bbl']) + '\n')
+            self.print_filenames()
 
         if self.filedict['aux']:
             self.parse_auxfile(self.filedict['aux'])
             if ('*' in self.citedict):
                 self.culldata = False
 
+
         ## Parsing the style file has to go *before* parsing the BIB file, so that any style options that affect the way
         ## the data is parsed can take effect.
         if self.filedict['bst']:
             for f in self.filedict['bst']:
-                self.parse_bstfile(f)
+                self.bst.parse_bstfile(f, self.options, self.specials, self.specials_list, self.user_script, self.user_variables, self.nested_templates, self.looped_templates, self.namelists, self.implicitly_indexed_vars)
+        #self.user_script = self.bst.get_user_script()
 
         ## Now that we've parsed the BST file, we need to check the list of special templates. For the "authorlist" and
         ## "editorlist", the ordering matters! It may seem that this section is easily replaced with a simple list, but
@@ -378,7 +323,7 @@ class Bibdata(object):
                 ## Check if the extract file is complete by reading in the database keys and checking against the
                 ## citation list.
                 self.parse_only_entrykeys = True
-                self.parse_bibfile(self.filedict['extract'])
+                self.bib.parse_bibfile(self.filedict['extract'], parse_only_entrykeys = self.parse_only_entrykeys, options = self.options)
                 self.parse_only_entrykeys = False
                 is_complete = self.check_citekeys_in_datakeys()
                 if is_complete:
@@ -387,393 +332,317 @@ class Bibdata(object):
                     self.searchkeys = []
                 ## Clear the bibliography database, or we will get "overwrite" errors when we parse it again below
                 ## (since right now all we have are entrykeys).
-                self.bibdata = {'preamble':''}
+                self.bib.clear()
             else:
                 is_complete = False
 
             ## If the current database is complete, then just go ahead and use it. If not, then parse the main database
             ## file(s).
             if is_complete and not refresh_extract:
-                self.parse_bibfile(self.filedict['extract'])  ## Parse extracted .bib file
+                self.bib.parse_bibfile(self.filedict['extract'], options = self.options)  ## Parse extracted .bib file
             else:
                 if self.culldata:
                     self.searchkeys = list(self.citedict)
                 for f in self.filedict['bib']:
-                    self.parse_bibfile(f)                     ## Parse full .bib file
+                    self.bib.parse_bibfile(f, self.culldata , self.searchkeys, options = self.options)      ## Parse full .bib file
                 if self.culldata:
                     self.add_crossrefs_to_searchkeys()
-                if ('*' in self.citedict):
-                    for i,key in enumerate(self.bibdata.keys()):
+                if ('*' in self.citedict):  ## \nocite{*} forces all entries in a database to be in bibliography
+                    for i,key in enumerate(self.bib.data.keys()):
                         if (key != 'preamble'):
                             self.citedict[key] = 1 + i
                     if ('preamble' in self.citedict): del self.citedict['preamble']
                     if ('*' in self.citedict): del self.citedict['*']
+                    
                 ## Write out the extracted database.
                 if self.options['use_citeextract']:
                     self.write_citeextract(self.filedict['extract'])
 
         return
 
-    ## =============================
-    def parse_bibfile(self, filename):
-        '''
-        Parse a ".bib" file to generate a dictionary representing a bibliography database.
+    ## =============================    
+    def print_filenames(self):
+        print('This is Bibulous, version ' + unicode(__version__))
+        print('The current working directory is: ' + os.getcwd())
+        print('The top-level TeX file: ' + unicode(self.filedict['tex']))
+        print('The top-level auxiliary file: ' + unicode(self.filedict['aux']))
+        print('The bibliography database file(s): ' + unicode(self.filedict['bib']))
+        print('The Bibulous style template file(s): ' + unicode(self.filedict['bst']))
+        print('The output formatted bibliography file: ' + unicode(self.filedict['bbl']) + '\n')
 
-        Parameters
-        ----------
-        filename : str
-            The filename of the .bib file to parse.
-        '''
-
-        ## Need to use the "codecs" module to handle UTF8 encoding/decoding properly. Using mode='rU' with the common
-        ## "open()" file function doesn't do this probperly, though I don't know why.
-        self.filename = filename
-        filehandle = codecs.open(os.path.normpath(self.filename), 'r', 'utf-8')
-
-        ## This next block parses the lines in the file into a dictionary. The tricky part here is that the BibTeX
-        ## format allows for multiline entries. So we have to look for places where a line does not end in a comma, and
-        ## check the following line to see if it a continuation of that line. Unfortunately, this means we need to read
-        ## the whole file into memory --- not just one line at a time.
-        entry_brace_level = 0
-
-        ## The variable "entrystr" contains all of the contents of the entry between the entrytype definition "@____{"
-        ## and the closing brace "}". Once we've obtained all of the (in general multiline) contents, then we hand them
-        ## off to parse_bibentry() to format them.
-        entrystr = ''
-        entrytype = None
-        self.i = 0           ## line number counter --- for error messages only
-        entry_counter = 0
-        abbrev_counter = 0
-
-        for line in filehandle:
-            self.i += 1
-
-            ## Ignore empty and comment lines.
-            if not line: continue
-            if line.strip().startswith('%'): continue
-            
-            #Workaround for bug in Papers3 that includes a stray backslash when using ampersands      
-            line = line.replace(r'\{\&}',r'{\&}')
+    #def parse_bstfile(self, filename):
+        #'''
+        #Convert a Bibulous-type bibliography style template into a dictionary.
+    
+        #The resulting dictionary consists of keys which are the various entrytypes, and values which are the template
+        #strings. In addition, any formatting options are stored in the "options" key as a dictionary of
+        #option_name:option_value pairs.
+    
+        #Parameters
+        #----------
+        #filename : str
+            #The filename of the Bibulous style template to use.
+        #'''
+    
+        #self.filename = filename
         
-            #Workaround for bug in Papers3 that exports BibTeX with non-escaped percentage signs
-            percent = re.compile (r'(?<!\\)%', re.UNICODE)
-            line = re.sub(percent, r"\%", line)               
-            
-            if line.startswith('}') and entry_brace_level == 1:
-                ## If a line *starts* with a closing brace, then assume the intent is to close the current entry.
-                entry_brace_level = 0
-                self.parse_bibentry(entrystr, entrytype)       ## close out the entry
-                if (entrytype.lower() == 'string'):
-                    abbrev_counter += 1
-                elif (entrytype.lower() not in ('preamble','acronym')):
-                    entry_counter += 1
-                entrystr = ''
-                if (line[1:].strip() != ''):
-                    bib_warning('Warning 001a: line#' + unicode(self.i) + ' of "' + self.filename + '" has data outside'
-                          ' of an entry {...} block. Skipping all contents until the next entry ...', self.disable)
-                continue
-
-            ## Don't strip off leading and ending whitespace until after checking if '}' begins a line (as in the block
-            ## above).
-            line = line.strip()
-
-            if line.startswith('@'):
-                brace_idx = line.find('{')             ## assume a form like "@ENTRYTYPE{"
-                if (brace_idx == -1):
-                    bib_warning('Warning 002a: open brace not found for the entry beginning on line#' + \
-                         unicode(self.i) + ' of "' + self.filename + '". Skipping to next entry ...',
-                         self.disable)
-                    entry_brace_level = 0
-                    continue
-                entrytype = line[1:brace_idx].lower().strip()   ## extract string between "@" and "{"
-                line = line[brace_idx+1:]
-                entry_brace_level = 1
-
-            ## If we are not currently inside an active entry, then skip the line and wait until the the next entry.
-            if (entry_brace_level == 0):
-                if (line.strip() != ''):
-                    bib_warning('Warning 001b: line#' + unicode(self.i) + ' of "' + self.filename + '" has data ' + \
-                                'outside of an entry {...} block. Skipping all contents until the next entry ...',
-                                self.disable)
-                continue
-
-            ## Look if the entry ends with this line. If so, append it to "entrystr" and call the entry parser. If not,
-            ## then simply append to the string and continue.
-            endpos = len(line)
-
-            for match in re.finditer(self.anybrace_pattern, line):
-                if (match.group(0)[-1] == '}'):
-                    entry_brace_level -= 1
-                elif (match.group(0)[-1] == '{'):
-                    entry_brace_level += 1
-                if (entry_brace_level == 0):
-                    ## If we've found the final brace, then check if there is anything after it.
-                    if (line[match.end():].strip() != ''):
-                        bib_warning('Warning 002b: line#' + unicode(self.i) + ' of "' + self.filename + \
-                             '" has data outside of an entry {...} block. Skipping all ' + \
-                             'contents until the next entry ...', self.disable)
-                    endpos = match.end()
-                    break
-
-            ## If we have returned to brace level 0, then finish appending the contents and send the entire set to the
-            ## parser.
-            if (entry_brace_level == 0):
-                entrystr += line[:endpos-1]      ## the "-1" here to remove the final closing brace
-                self.parse_bibentry(entrystr, entrytype)
-                if (entrytype.lower() == 'string'):
-                    abbrev_counter += 1
-                elif (entrytype.lower() not in ('preamble','acronym')):
-                    entry_counter += 1
-                entrystr = ''
-            else:
-                entrystr += line[:endpos] + '\n'
-
-        filehandle.close()
-
-        print('Found %i entries and %i abbrevs in %s' % (entry_counter, abbrev_counter, filename))
-        #print('    Bibdata now has %i keys' % (len(self.bibdata) - 1))
-
-        return
-
-    ## =============================
-    def parse_bibentry(self, entrystr, entrytype):
-        '''
-        Given a string representing the entire contents of the BibTeX-format bibliography entry, parse the contents and
-        place them into the bibliography preamble string, the set of abbreviations, and the bibliography database
-        dictionary.
-
-        Parameters
-        ----------
-        entrystr : str
-            The string containing the entire contents of the bibliography entry.
-        entrytype : str
-            The type of entry (`article`, `preamble`, etc.).
-        '''
-
-        if not entrystr:
-            return
-
-        if (entrytype == 'comment'):
-            pass
-        elif (entrytype == 'preamble'):
-            ## In order to use the same "parse_bibfield()" function as all the other options, add a fake key onto the
-            ## front of the string before calling "parse_bibfield()".
-            fd = self.parse_bibfield('fakekey = ' + entrystr)
-            if fd: self.bibdata['preamble'] += '\n' + fd['fakekey']
-        elif (entrytype == 'string'):
-            fd = self.parse_bibfield(entrystr)
-            for fdkey in fd:
-                if (fdkey in self.abbrevs):
-                    bib_warning('Warning 032a: line#' + unicode(self.i) + ' of "' + self.filename +
-                                ': the abbreviation "' + fdkey + '" = "' + self.abbrevs[fdkey] + '" is being '
-                                'overwritten as "' + fdkey + '" = "' + fd[fdkey] + '"', self.disable)
-            if fd: self.abbrevs.update(fd)
-        elif (entrytype == 'acronym'):
-            ## Acronym entrytypes have an identical form to "string" types, but we map them into a dictionary like a
-            ## regular field, so we can access them as regular database entries.
-            fd = self.parse_bibfield(entrystr)
-            entrykey = list(fd)[0]
-            newentry = {'name':entrykey, 'description':fd[entrykey], 'entrytype':'acronym'}
-            if (entrykey in self.bibdata):
-                bib_warning('Warning 032b: line#' + unicode(self.i) + ' of "' + self.filename +
-                            ': the acronym "' + entrykey + '" = "' + self.bibdata[entrykey] + '" is being '
-                            'overwritten as "' + entrykey + '" = "' + fd[entrykey] + '"', self.disable)
-            if fd: self.bibdata[entrykey] = newentry
-        else:
-            ## First get the entry key. Then send the remainder of the entry string to the parser.
-            idx = entrystr.find(',')
-            if (idx == -1) and ('\n' not in entrystr):
-                bib_warning('Warning 035: the entry starting on line #' + unicode(self.i) + ' of file "' + \
-                     self.filename + '" provides only an entry key ("' + entrystr + '" and no item contents.', \
-                     self.disable)
-            elif (idx == -1):
-                bib_warning('Warning 003: the entry ending on line #' + unicode(self.i) + ' of file "' + \
-                     self.filename + '" is does not have an "," for defining the entry key. '
-                     'Skipping ...', self.disable)
-                return(fd)
-
-            ## Get the entry key. If we are culling the database (self.culldata == True) and the entry key is not among
-            ## the citation keys, then exit --- we don't need to add this to the database.
-            entrykey = entrystr[:idx].strip()
-
-            ## If the entry is not among the list of keys to parse, then don't bother. Skip to the next entry to save
-            ## time.
-            if self.culldata and self.searchkeys and (entrykey not in self.searchkeys):
-                return
-
-            entrystr = entrystr[idx+1:]
-
-            if not entrykey:
-                bib_warning('Warning 004a: the entry ending on line #' + unicode(self.i) + ' of file "' + \
-                     self.filename + '" has an empty key. Ignoring and continuing ...', self.disable)
-                return
-            elif (entrykey in self.bibdata):
-                bib_warning('Warning 004b: the entry ending on line #' + unicode(self.i) + ' of file "' + \
-                     self.filename + '" has the same key ("' + entrykey + '") as a previous ' + \
-                     'entry. Overwriting the entry and continuing ...', self.disable)
-
-            ## Create the dictionary for the database entry. Add the entrytype and entrykey. The latter is primarily
-            ## useful for debugging, so we don't have to send the key separately from the entry itself.
-            preexists = (entrykey in self.bibdata)
-            self.bibdata[entrykey] = {}
-            self.bibdata[entrykey]['entrytype'] = entrytype
-            self.bibdata[entrykey]['entrykey'] = entrykey
-
-            if not self.parse_only_entrykeys:
-                fd = self.parse_bibfield(entrystr, entrykey)
-                if preexists:
-                    bib_warning('Warning 032c: line#' + unicode(self.i) + ' of "' + self.filename + ': the entry "' +
-                                entrykey + '" is being overwritten with a new definition', self.disable)
-                if fd: self.bibdata[entrykey].update(fd)
-
-        return
-
-    ## =============================
-    def parse_bibfield(self, entrystr, entrykey=''):
-        '''
-        For a given string representing the raw contents of a BibTeX-format bibliography entry, parse the contents into
-        a dictionary of key:value pairs corresponding to the field names and field values.
-
-        Parameters
-        ----------
-        entrystr : str
-            The string containing the entire contents of the bibliography entry.
-        entrykey : str
-            The key of the bibliography entry being parsed (useful for error messages).
-
-        Returns
-        -------
-        fd : dict
-            The dictionary of "field name" and "field value" pairs.
-        '''
-
-        entrystr = entrystr.strip()
-        fd = {}             ## the dictionary for holding key:value string pairs
-
-        while entrystr:
-            ## First locate the field key.
-            idx = entrystr.find('=')
-            if (idx == -1):
-                bib_warning('Warning 005: the entry ending on line #' + unicode(self.i) + ' of file "' + \
-                     self.filename + '" is an abbreviation-type entry but does not have an "=" '
-                     'for defining the end of the abbreviation key. Skipping ...', self.disable)
-                return(fd)
-
-            fieldkey = entrystr[:idx].strip()
-            if (fieldkey in fd):
-                bib_warning('Warning 033: line#' + unicode(self.i) + ' of "' + self.filename + ': the "' + fieldkey +
-                            '" field of entry "' + entrykey + '" is duplicated', self.disable)
-
-            fieldstr = entrystr[idx+1:].strip()
-
-            if not self.options['case_sensitive_field_names']:
-                fieldkey = fieldkey.lower()
-
-            if not fieldstr:
-                entrystr = ''
-                continue
-
-            ## Next we go through the field contents, which may involve concatenating. When we reach the end of an
-            ## individual field, we return the "result string" and truncate the entry string to remove the part we just
-            ## finished parsing.
-            resultstr = ''
-            while fieldstr:
-                firstchar = fieldstr[0]
-
-                if (firstchar == ','):
-                    ## Reached the end of the field, truncate the entry string return to the outer loop over fields.
-                    fd[fieldkey] = resultstr
-                    entrystr = fieldstr[1:].strip()
-                    break
-                elif (firstchar == '#'):
-                    ## Reached a concatenation operator. Just skip it.
-                    fieldstr = fieldstr[1:].strip()
-                elif (firstchar == '"'):
-                    ## Search for the content string that resolves the double-quote delimiter. Once you've found the
-                    ## end delimiter, append the content string to the result string.
-                    endpos = len(fieldstr)
-                    entry_brace_level = 0
-                    for match in re.finditer(self.anybraceorquote_pattern, fieldstr[1:]):
-                        if (match.group(0)[-1] == '}'):
-                            entry_brace_level -= 1
-                        elif (match.group(0)[-1] == '{'):
-                            entry_brace_level += 1
-                        if (match.group(0)[-1] == '"') and (entry_brace_level == 0):
-                            endpos = match.end()
-                            break
-                    resultstr += ' ' + fieldstr[1:endpos]
-                    fieldstr = fieldstr[endpos+1:].strip()
-                    if not fieldstr: entrystr = ''
-                elif (firstchar == '{'):
-                    ## Search for the endbrace that resolves the brace level. Once you've found it, add the intervening
-                    ## contents to the result string.
-                    endpos = len(fieldstr)
-                    entry_brace_level = 1
-                    for match in re.finditer(self.anybrace_pattern, fieldstr[1:]):
-                        if (match.group(0)[-1] == '}'):
-                            entry_brace_level -= 1
-                        elif (match.group(0)[-1] == '{'):
-                            entry_brace_level += 1
-                        if (entry_brace_level == 0):
-                            endpos = match.end()
-                            break
-                    resultstr += ' ' + fieldstr[1:endpos]
-                    fieldstr = fieldstr[endpos+1:].strip()
-                    if not fieldstr: entrystr = ''
-                else:
-                    ## If the fieldstr doesn't begin with '"' or '{' or '#', then the next set of characters must be an
-                    ## abbreviation key. An abbrev key ends with a whitespace followed by either '#' or ',' (or the end
-                    ## of the field). Anything else is a syntax error.
-                    endpos = len(fieldstr)
-                    end_of_field = False
-
-                    ## The "abbrevkey_pattern" searches for the first '#' or ',' that is not preceded by a backslash. If
-                    ## this pattern is found, then we've found the *end* of the abbreviation key.
-                    if not re.search(self.abbrevkey_pattern, fieldstr):
-                        ## If the "abbrevkey" is an integer, then it's not actually an abbreviation. Convert it to a
-                        ## string and insert the number itself.
-                        abbrevkey = fieldstr
-                        if re.match(self.integer_pattern, abbrevkey):
-                            resultstr += unicode(abbrevkey)
-                        else:
-                            if abbrevkey in self.abbrevs:
-                                resultstr += self.abbrevs[abbrevkey].strip()
-                            else:
-                                bib_warning('Warning 006: for the entry ending on line #' + unicode(self.i) + \
-                                    ' of file "' + self.filename + '", cannot find the abbreviation key "' +
-                                    abbrevkey + '". Skipping ...', self.disable)
-                                resultstr = self.options['undefstr']
-                        fieldstr = ''
-                        end_of_field = True
-                    else:
-                        (fieldstr, resultstr, end_of_field) = self.replace_abbrevs_with_full(fieldstr, resultstr)
-
-                    ## Since we found the comma at the end of this field's contents, we break here to return to the loop
-                    ## over fields.
-                    if end_of_field:
-                        entrystr = fieldstr.strip()
-                        break
-
-            ## Strip off any unnecessary white space and remove any newlines.
-            resultstr = resultstr.strip().replace('\n',' ')
-
-            ## Having braces around quotes can cause problems when parsing nested quotes, and do not provide any
-            ## additional functionality.
-            if ('{"}') in resultstr:
-                resultstr = resultstr.replace('{"}', '"')
-            if ("{'}") in resultstr:
-                resultstr = resultstr.replace("{'}", "'")
-            if ('{`}') in resultstr:
-                resultstr = resultstr.replace('{`}', '`')
-
-            fd[fieldkey] = resultstr
-
-            ## If the field defines a cross-reference, then add it to the "searchkeys", so that when we are culling the
-            ## database for faster parsing, we do not ignore the cross-referenced entries.
-            if (fieldkey == 'crossref'):
-                self.searchkeys.append(resultstr)
-
-        return(fd)
+      
+        
+        
+        #filehandle = codecs.open(os.path.normpath(filename), 'r', 'utf-8')
+    
+        ### For the "definition_pattern", rather than matching the initial string up to the first whitespace character,
+        ### we match a whitespace-equals-whitespace
+        #definition_pattern = re.compile(r'\s=\s', re.UNICODE)
+        #section = 'TEMPLATES'
+        #continuation = False        ## whether the current line is a continuation of the previous
+        #abort_script = False        ## if an unsafe object is being used, abort the user_script eval
+    
+        #for i,line in enumerate(filehandle):
+            ### Ignore any comment lines, and remove any comments from data lines.
+            #if line.startswith('#'): continue
+            #if ('#' in line):
+                #idx = line.index('#')
+                #line = line[:idx]
+                #if not line.strip(): continue       ## if the line contained only a comment
+    
+            #if ('EXECUTE {' in line) or ('EXECUTE{' in line) or ('FUNCTION {' in line):
+                #raise ImportError('The style template file "' + filename + '" appears to be BibTeX format, not '
+                                  #'Bibulous. Aborting...')
+    
+            #if line.strip().startswith('TEMPLATES:'):
+                #section = 'TEMPLATES'
+                #continuation = False
+                #continue
+            #elif line.strip().startswith('SPECIAL-TEMPLATES:'):
+                #section = 'SPECIAL-TEMPLATES'
+                #continuation = False
+                #continue
+            #elif line.strip().startswith('OPTIONS:'):
+                #section = 'OPTIONS'
+                #continuation = False
+                #continue
+            #elif line.strip().startswith('DEFINITIONS:'):
+                #section = 'DEFINITIONS'
+                #continuation = False
+                #continue
+            #elif line.strip().startswith('VARIABLES:'):
+                #section = 'VARIABLES'
+                #continuation = False
+                #continue
+    
+            #if (section == 'DEFINITIONS'):
+                #if ('__' in line):
+                    #bibtools.warning('Warning 026a: Python script line #' + str(i) + ' of file "' + filename + '" contains'\
+                         #' an invalid use of "__".\nAborting script evaluation ...', self.disable)
+                    #abort_script = True
+                #if re.search(r'\sos.\S', line, re.UNICODE):
+                    #bibtools.warning('Warning 026b: Python script line #' + str(i) + ' of file "' + filename + '" contains'\
+                         #' an invalid call to the "os" module.\nAborting script evaluation ...', self.disable)
+                    #abort_script = True
+                #if re.search(r'\ssys.\S', line, re.UNICODE):
+                    #bibtools.warning('Warning 026c: Python script line #' + str(i) + ' of file "' + filename + '" contains'\
+                         #' an invalid call to the "sys" module.\nAborting script evaluation ...', self.disable)
+                    #abort_script = True
+                #if re.search(r'\scodecs.\S', line, re.UNICODE):
+                    #bibtools.warning('Warning 026c: Python script line #' + str(i) + ' of file "' + filename + '" contains'\
+                         #' an invalid call to the "codecs" module.\nAborting script evaluation ...', self.disable)
+                    #abort_script = True
+                #if re.search(r'^import\s', line, re.UNICODE):
+                    #bibtools.warning('Warning 026d: Python script line #' + str(i) + ' of file "' + filename + '" contains'\
+                         #' an invalid call to "import".\nAborting script evaluation ...', self.disable)
+                    #abort_script = True
+                #if re.search(r'^import\s', line, re.UNICODE):
+                    #bibtools.warning('Warning 026e: Python script line #' + str(i) + ' of file "' + filename + '" contains'\
+                         #' an invalid call to the "open()" function.\nAborting script evaluation ...', self.disable)
+                    #abort_script = True
+    
+                #self.user_script += line
+                #if self.debug: print('Adding a line to the BST scripting string: ' + line, end='')
+    
+            #line = line.strip()
+    
+            #if (section == 'VARIABLES'):
+                #if not line: continue
+                #matchobj = re.search(definition_pattern, line)
+                #if (matchobj == None):
+                    #bibtools.warning('Warning 008a: line #' + str(i) + ' of file "' + filename + '" does not contain' + \
+                         #' a valid variable definition.\n Skipping ...', self.disable)
+                    #continue
+                #(start,end) = matchobj.span()
+                #var = line[:start].strip()
+                #value = line[end:].strip()
+                #self.user_variables[var] = filter_script(value)
+                #if self.debug:
+                    #print('Adding user variable "' + var + '" with value "' + value + '" ...')
+            #elif (section in ('TEMPLATES','OPTIONS','SPECIAL-TEMPLATES')):
+                ### Skip empty lines. It is tempting to put this line above here, but resist the temptation -- putting
+                ### it higher above would remove empty lines from the Python scripts in the DEFINITIONS section, which
+                ### would make troubleshooting those more difficult.
+                #if not line: continue
+                #if not continuation:
+                    ### If the line ends with an ellipsis, then remove the ellipsis and set continuation to True.
+                    #if line.endswith('...'):
+                        #line = line[:-3].strip()
+                        #continuation = True
+    
+                    #matchobj = re.search(definition_pattern, line)
+                    #if (matchobj == None):
+                        #bibtools.warning('Warning 008b: line #' + str(i) + ' of file "' + filename + '" does not contain' +\
+                             #' a valid variable definition.\n Skipping ...', self.disable)
+                        #continue
+    
+                    #(start,end) = matchobj.span()
+                    #var = line[:start].strip()
+                    #value = line[end:].strip()
+                #else:
+                    ### If the line ends with an ellpsis, then remove the ellipsis and set continuation to True.
+                    #if line.endswith('...'):
+                        #line = line[:-3].strip()
+                        #continuation = True
+                    #else:
+                        #continuation = False
+    
+                    #value += line.strip()
+    
+                #if (section == 'TEMPLATES'):
+                    ### The line defines an entrytype template. Check whether this definition is overwriting an already
+                    ### existing definition.
+                    #if (var in self.bst.bstdict) and (self.bst.bstdict[var] != value):
+                        #bibtools.warning('Warning 009a: overwriting the existing template variable "' + var + \
+                             #'" from [' + self.bst.bstdict[var] + '] to [' + value + '] ...', self.disable)
+                    #self.bst.bstdict[var] = value
+    
+                    ### Find out if the template has nested option blocks. If so, then add it to
+                    ### the list of nested templates.
+                    #levels = get_delim_levels(value, ('[',']'))
+                    #if (2 in levels) and (var not in self.nested_templates):
+                        #self.nested_templates.append(var)
+    
+                    ### Find out if the template contains an implicit loop (an ellipsis not at the end of a line). If
+                    ### so then add it to the list of looped templates.
+                    #if ('...' in value.strip()[:-3]) and (var not in self.looped_templates):
+                        #loop_data = get_implicit_loop_data(value)
+                        #self.looped_templates[var] = loop_data
+    
+                    #if self.debug:
+                        #print('Setting BST entrytype template "' + var + '" to value "' + value + '"')
+    
+                #elif (section == 'OPTIONS'):
+                    ### The variable defines an option rather than an entrytype. Check whether this definition is
+                    ### overwriting an already existing definition.
+                    #if (var in self.options) and (str(self.options[var]) != value):\
+                        #bibtools.warning('Warning 009b: overwriting the existing template option "' + var + '" from [' + \
+                             #unicode(self.options[var]) + '] to [' + unicode(value) + '] ...', self.disable)
+                    ### If the value is numeric or bool, then convert the datatype from string.
+                    #if self.debug:
+                        #print('Setting BST option "' + var + '" to value "' + value + '"')
+    
+                    #if value.isdigit():
+                        #value = int(value)
+                    #elif (value in ('True','False')):
+                        #value = (value == 'True')
+    
+                    #if (var == 'name_separator') and (value == ''):
+                        #value = ' '
+    
+                    #self.options[var] = value
+    
+                #elif (section == 'SPECIAL-TEMPLATES'):
+                    ### The line defines an entrytype template. Check whether this definition is overwriting an already
+                    ### existing definition.
+                    #if (var in self.specials) and (self.specials[var] != value):
+                        #bibtools.warning('Warning 009c: overwriting the existing special template variable "' + var + \
+                             #'" from [' + self.specials[var] + '] to [' + value + '] ...', self.disable)
+                    #self.specials[var] = value
+                    #if (var not in self.specials_list):
+                        #self.specials_list.append(var)
+    
+                    #if ('.to_namelist()>' in value):
+                        #self.namelists.append(var)
+    
+                    ### Find out if the template has nested option blocks. If so, then add it to
+                    ### the list of nested templates.
+                    #levels = get_delim_levels(value, ('[',']'))
+                    #if not levels:
+                        #bibtools.warning('Warning 036: the style template for entrytype "' + var + '" has unbalanced ' + \
+                                    #'square brackets. Skipping ...', self.disable)
+                        #self.specials[var] = ''
+    
+                    #if (2 in levels) and (var not in self.nested_templates):
+                        #self.nested_templates.append(var)
+    
+                    ### Find out if the template contains an implicit loop (an ellipsis not at the end of a line). If
+                    ### so then add it to the list of looped templates.
+                    #if ('...' in value.strip()[:-3]) and (var not in self.looped_templates):
+                        #loop_data = get_implicit_loop_data(value)
+                        #self.looped_templates[var] = loop_data
+    
+                    ### Find out if the template contains an implicit index. If so then add it to the list of such.
+                    #if re.search('\.n\.', value) or re.search('\.n>', value):
+                        #(varname,_) = var.split('.',1)
+                        #if (varname not in self.implicitly_indexed_vars):
+                            #self.implicitly_indexed_vars.append(varname)
+    
+                    #if self.debug:
+                        #print('Setting BST special template "' + var + '" to value "' + value + '"')
+    
+        #filehandle.close()
+    
+        #if abort_script:
+            #self.user_script = ''
+    
+        ### The "terse_inits" options has to override the "period_after_initial" option.
+        #if ('terse_inits' in self.options) and  self.options['terse_inits']:
+            #self.options['period_after_initial'] = False
+    
+        ### Next check to see whether any of the template definitions are simply maps to one of the other definitions.
+        ### For example, one BST file may have a line of the form
+        ###      inbook = incollection
+        ### which implies that the template for "inbook" should be mapped to the same template as defined for the
+        ### "incollection" entrytype.
+        #for key in self.bst.bstdict:
+            #nwords = len(re.findall(r'\w+', self.bst.bstdict[key]))
+            #if (nwords == 1) and ('<' not in self.bst.bstdict[key]):
+                #self.bst.bstdict[key] = self.bst.bstdict[self.bst.bstdict[key]]
+    
+        ### If the user defined any functions, then we want to evaluate them in a way such that they are available in
+        ### other functions.
+        #if self.user_script and self.options['allow_scripts']:
+            #if self.debug:
+                #print('Evaluating the user script:\n' + 'v'*50 + '\n' + self.user_script + '^'*50 + '\n')
+            #exec(self.user_script, globals())
+    
+        ### Next validate all of the template strings to check for formatting errors.
+        #bad_templates = []
+        #for key in self.bst.bstdict:
+            #okay = self.validate_templatestr(self.bst.bstdict[key], key)
+            #if not okay:
+                #bad_templates.append(key)
+    
+        #for bad in bad_templates:
+            #self.bst.bstdict[bad] = 'Error: malformed template.'
+    
+        ### The "special templates" have to be treated differently, since we can't just replace the template with the
+        ### "malformed template" message. If the template is not okay, then validate_templatestr() will emit a warning
+        ### message. If not okay, then replace the offending template with self.options['undefstr'].
+        #for key in self.specials:
+            #okay = self.validate_templatestr(self.specials[key], key)
+            #if not okay: self.specials[key] = self.options['undefstr']
+    
+        #if self.debug:
+            ### When displaying the BST dictionary, show it in sorted form.
+            #for key in sorted(self.bst.bstdict, key=self.bst.bstdict.get, cmp=locale.strcoll):
+                #print('entrytype.' + key + ': ' + unicode(self.bst.bstdict[key]))
+            #for key in sorted(self.options, key=self.options.get):
+                #print('options.' + key + ': ' + unicode(self.options[key]))
+            #for key in sorted(self.specials, key=self.specials.get):
+                #print('specials.' + key + ': ' + unicode(self.specials[key]))
+    
+        #return        
+        
+        
+        
 
     ## =============================
     def parse_auxfile(self, filename, recursive_call=False, debug=False):
@@ -829,7 +698,7 @@ class Bibdata(object):
         ## start at 1 here, since some citations may occur in a recursive call to this function. Rather, we
         ## need to look into the citation dictionary, grab the highest citation number available there, and increment.
         if not self.keylist:
-            bib_warning('Warning 007: no citations found in AUX file "' + filename + '"', self.disable)
+            bibtools.warning('Warning 007: no citations found in AUX file "' + filename + '"', self.disable)
         else:
             if not self.citedict:
                 q = 1                   ## citation order counter
@@ -850,274 +719,7 @@ class Bibdata(object):
 
         return
 
-    ## =============================
-    def parse_bstfile(self, filename):
-        '''
-        Convert a Bibulous-type bibliography style template into a dictionary.
-
-        The resulting dictionary consists of keys which are the various entrytypes, and values which are the template
-        strings. In addition, any formatting options are stored in the "options" key as a dictionary of
-        option_name:option_value pairs.
-
-        Parameters
-        ----------
-        filename : str
-            The filename of the Bibulous style template to use.
-        '''
-
-        self.filename = filename
-        filehandle = codecs.open(os.path.normpath(filename), 'r', 'utf-8')
-
-        ## For the "definition_pattern", rather than matching the initial string up to the first whitespace character,
-        ## we match a whitespace-equals-whitespace
-        definition_pattern = re.compile(r'\s=\s', re.UNICODE)
-        section = 'TEMPLATES'
-        continuation = False        ## whether the current line is a continuation of the previous
-        abort_script = False        ## if an unsafe object is being used, abort the user_script eval
-
-        for i,line in enumerate(filehandle):
-            ## Ignore any comment lines, and remove any comments from data lines.
-            if line.startswith('#'): continue
-            if ('#' in line):
-                idx = line.index('#')
-                line = line[:idx]
-                if not line.strip(): continue       ## if the line contained only a comment
-
-            if ('EXECUTE {' in line) or ('EXECUTE{' in line) or ('FUNCTION {' in line):
-                raise ImportError('The style template file "' + filename + '" appears to be BibTeX format, not '
-                                  'Bibulous. Aborting...')
-
-            if line.strip().startswith('TEMPLATES:'):
-                section = 'TEMPLATES'
-                continuation = False
-                continue
-            elif line.strip().startswith('SPECIAL-TEMPLATES:'):
-                section = 'SPECIAL-TEMPLATES'
-                continuation = False
-                continue
-            elif line.strip().startswith('OPTIONS:'):
-                section = 'OPTIONS'
-                continuation = False
-                continue
-            elif line.strip().startswith('DEFINITIONS:'):
-                section = 'DEFINITIONS'
-                continuation = False
-                continue
-            elif line.strip().startswith('VARIABLES:'):
-                section = 'VARIABLES'
-                continuation = False
-                continue
-
-            if (section == 'DEFINITIONS'):
-                if ('__' in line):
-                    bib_warning('Warning 026a: Python script line #' + str(i) + ' of file "' + filename + '" contains'\
-                         ' an invalid use of "__".\nAborting script evaluation ...', self.disable)
-                    abort_script = True
-                if re.search(r'\sos.\S', line, re.UNICODE):
-                    bib_warning('Warning 026b: Python script line #' + str(i) + ' of file "' + filename + '" contains'\
-                         ' an invalid call to the "os" module.\nAborting script evaluation ...', self.disable)
-                    abort_script = True
-                if re.search(r'\ssys.\S', line, re.UNICODE):
-                    bib_warning('Warning 026c: Python script line #' + str(i) + ' of file "' + filename + '" contains'\
-                         ' an invalid call to the "sys" module.\nAborting script evaluation ...', self.disable)
-                    abort_script = True
-                if re.search(r'\scodecs.\S', line, re.UNICODE):
-                    bib_warning('Warning 026c: Python script line #' + str(i) + ' of file "' + filename + '" contains'\
-                         ' an invalid call to the "codecs" module.\nAborting script evaluation ...', self.disable)
-                    abort_script = True
-                if re.search(r'^import\s', line, re.UNICODE):
-                    bib_warning('Warning 026d: Python script line #' + str(i) + ' of file "' + filename + '" contains'\
-                         ' an invalid call to "import".\nAborting script evaluation ...', self.disable)
-                    abort_script = True
-                if re.search(r'^import\s', line, re.UNICODE):
-                    bib_warning('Warning 026e: Python script line #' + str(i) + ' of file "' + filename + '" contains'\
-                         ' an invalid call to the "open()" function.\nAborting script evaluation ...', self.disable)
-                    abort_script = True
-
-                self.user_script += line
-                if self.debug: print('Adding a line to the BST scripting string: ' + line, end='')
-
-            line = line.strip()
-
-            if (section == 'VARIABLES'):
-                if not line: continue
-                matchobj = re.search(definition_pattern, line)
-                if (matchobj == None):
-                    bib_warning('Warning 008a: line #' + str(i) + ' of file "' + filename + '" does not contain' + \
-                         ' a valid variable definition.\n Skipping ...', self.disable)
-                    continue
-                (start,end) = matchobj.span()
-                var = line[:start].strip()
-                value = line[end:].strip()
-                self.user_variables[var] = filter_script(value)
-                if self.debug:
-                    print('Adding user variable "' + var + '" with value "' + value + '" ...')
-            elif (section in ('TEMPLATES','OPTIONS','SPECIAL-TEMPLATES')):
-                ## Skip empty lines. It is tempting to put this line above here, but resist the temptation -- putting
-                ## it higher above would remove empty lines from the Python scripts in the DEFINITIONS section, which
-                ## would make troubleshooting those more difficult.
-                if not line: continue
-                if not continuation:
-                    ## If the line ends with an ellipsis, then remove the ellipsis and set continuation to True.
-                    if line.endswith('...'):
-                        line = line[:-3].strip()
-                        continuation = True
-
-                    matchobj = re.search(definition_pattern, line)
-                    if (matchobj == None):
-                        bib_warning('Warning 008b: line #' + str(i) + ' of file "' + filename + '" does not contain' +\
-                             ' a valid variable definition.\n Skipping ...', self.disable)
-                        continue
-
-                    (start,end) = matchobj.span()
-                    var = line[:start].strip()
-                    value = line[end:].strip()
-                else:
-                    ## If the line ends with an ellpsis, then remove the ellipsis and set continuation to True.
-                    if line.endswith('...'):
-                        line = line[:-3].strip()
-                        continuation = True
-                    else:
-                        continuation = False
-
-                    value += line.strip()
-
-                if (section == 'TEMPLATES'):
-                    ## The line defines an entrytype template. Check whether this definition is overwriting an already
-                    ## existing definition.
-                    if (var in self.bstdict) and (self.bstdict[var] != value):
-                        bib_warning('Warning 009a: overwriting the existing template variable "' + var + \
-                             '" from [' + self.bstdict[var] + '] to [' + value + '] ...', self.disable)
-                    self.bstdict[var] = value
-
-                    ## Find out if the template has nested option blocks. If so, then add it to
-                    ## the list of nested templates.
-                    levels = get_delim_levels(value, ('[',']'))
-                    if (2 in levels) and (var not in self.nested_templates):
-                        self.nested_templates.append(var)
-
-                    ## Find out if the template contains an implicit loop (an ellipsis not at the end of a line). If
-                    ## so then add it to the list of looped templates.
-                    if ('...' in value.strip()[:-3]) and (var not in self.looped_templates):
-                        loop_data = get_implicit_loop_data(value)
-                        self.looped_templates[var] = loop_data
-
-                    if self.debug:
-                        print('Setting BST entrytype template "' + var + '" to value "' + value + '"')
-
-                elif (section == 'OPTIONS'):
-                    ## The variable defines an option rather than an entrytype. Check whether this definition is
-                    ## overwriting an already existing definition.
-                    if (var in self.options) and (str(self.options[var]) != value):\
-                        bib_warning('Warning 009b: overwriting the existing template option "' + var + '" from [' + \
-                             unicode(self.options[var]) + '] to [' + unicode(value) + '] ...', self.disable)
-                    ## If the value is numeric or bool, then convert the datatype from string.
-                    if self.debug:
-                        print('Setting BST option "' + var + '" to value "' + value + '"')
-
-                    if value.isdigit():
-                        value = int(value)
-                    elif (value in ('True','False')):
-                        value = (value == 'True')
-
-                    if (var == 'name_separator') and (value == ''):
-                        value = ' '
-
-                    self.options[var] = value
-
-                elif (section == 'SPECIAL-TEMPLATES'):
-                    ## The line defines an entrytype template. Check whether this definition is overwriting an already
-                    ## existing definition.
-                    if (var in self.specials) and (self.specials[var] != value):
-                        bib_warning('Warning 009c: overwriting the existing special template variable "' + var + \
-                             '" from [' + self.specials[var] + '] to [' + value + '] ...', self.disable)
-                    self.specials[var] = value
-                    if (var not in self.specials_list):
-                        self.specials_list.append(var)
-
-                    if ('.to_namelist()>' in value):
-                        self.namelists.append(var)
-
-                    ## Find out if the template has nested option blocks. If so, then add it to
-                    ## the list of nested templates.
-                    levels = get_delim_levels(value, ('[',']'))
-                    if not levels:
-                        bib_warning('Warning 036: the style template for entrytype "' + var + '" has unbalanced ' + \
-                                    'square brackets. Skipping ...', self.disable)
-                        self.specials[var] = ''
-
-                    if (2 in levels) and (var not in self.nested_templates):
-                        self.nested_templates.append(var)
-
-                    ## Find out if the template contains an implicit loop (an ellipsis not at the end of a line). If
-                    ## so then add it to the list of looped templates.
-                    if ('...' in value.strip()[:-3]) and (var not in self.looped_templates):
-                        loop_data = get_implicit_loop_data(value)
-                        self.looped_templates[var] = loop_data
-
-                    ## Find out if the template contains an implicit index. If so then add it to the list of such.
-                    if re.search('\.n\.', value) or re.search('\.n>', value):
-                        (varname,_) = var.split('.',1)
-                        if (varname not in self.implicitly_indexed_vars):
-                            self.implicitly_indexed_vars.append(varname)
-
-                    if self.debug:
-                        print('Setting BST special template "' + var + '" to value "' + value + '"')
-
-        filehandle.close()
-
-        if abort_script:
-            self.user_script = ''
-
-        ## The "terse_inits" options has to override the "period_after_initial" option.
-        if ('terse_inits' in self.options) and  self.options['terse_inits']:
-            self.options['period_after_initial'] = False
-
-        ## Next check to see whether any of the template definitions are simply maps to one of the other definitions.
-        ## For example, one BST file may have a line of the form
-        ##      inbook = incollection
-        ## which implies that the template for "inbook" should be mapped to the same template as defined for the
-        ## "incollection" entrytype.
-        for key in self.bstdict:
-            nwords = len(re.findall(r'\w+', self.bstdict[key]))
-            if (nwords == 1) and ('<' not in self.bstdict[key]):
-                self.bstdict[key] = self.bstdict[self.bstdict[key]]
-
-        ## If the user defined any functions, then we want to evaluate them in a way such that they are available in
-        ## other functions.
-        if self.user_script and self.options['allow_scripts']:
-            if self.debug:
-                print('Evaluating the user script:\n' + 'v'*50 + '\n' + self.user_script + '^'*50 + '\n')
-            exec(self.user_script, globals())
-
-        ## Next validate all of the template strings to check for formatting errors.
-        bad_templates = []
-        for key in self.bstdict:
-            okay = self.validate_templatestr(self.bstdict[key], key)
-            if not okay:
-                bad_templates.append(key)
-
-        for bad in bad_templates:
-            self.bstdict[bad] = 'Error: malformed template.'
-
-        ## The "special templates" have to be treated differently, since we can't just replace the template with the
-        ## "malformed template" message. If the template is not okay, then validate_templatestr() will emit a warning
-        ## message. If not okay, then replace the offending template with self.options['undefstr'].
-        for key in self.specials:
-            okay = self.validate_templatestr(self.specials[key], key)
-            if not okay: self.specials[key] = self.options['undefstr']
-
-        if self.debug:
-            ## When displaying the BST dictionary, show it in sorted form.
-            for key in sorted(self.bstdict, key=self.bstdict.get, cmp=locale.strcoll):
-                print('entrytype.' + key + ': ' + unicode(self.bstdict[key]))
-            for key in sorted(self.options, key=self.options.get):
-                print('options.' + key + ': ' + unicode(self.options[key]))
-            for key in sorted(self.specials, key=self.specials.get):
-                print('specials.' + key + ': ' + unicode(self.specials[key]))
-
-        return
-
+    
     ## =============================
     def write_bblfile(self, filename=None, write_preamble=True, write_postamble=True, bibsize=None, debug=False, use_PyICU = False):
         '''
@@ -1153,7 +755,7 @@ class Bibdata(object):
         if not self.citedict:
             print('Warning 034: No citations were found.')
             return
-        if not self.bstdict:
+        if not self.bst.bstdict:
             raise ImportError('No template file was found. Aborting writing the BBL file ...')
 
         if not write_preamble:
@@ -1171,8 +773,8 @@ class Bibdata(object):
                 s = '\\setlength{\\itemsep}{' + self.options['bibitemsep'] + '}\n'
                 filehandle.write(s.encode('utf-8'))
 
-            if ('preamble' in self.bibdata):
-                filehandle.write(self.bibdata['preamble'].encode('utf-8'))
+            if ('preamble' in self.bib.data):
+                filehandle.write(self.bib.data['preamble'].encode('utf-8'))
 
             filehandle.write('\n\n'.encode('utf-8'))
 
@@ -1188,11 +790,11 @@ class Bibdata(object):
                     ## If the citation key is not in the database, then create a fake entry with it, using entrytype
                     ## "errormsg", and an item "errormsg" that contains the thing we want printed out in the citation
                     ## list to warn the user.
-                    if c not in self.bibdata:
+                    if c not in self.bib.data:
                         msg = 'citation key ``' + c + '\'\' is not in the bibliography database'
-                        bib_warning('Warning 010a: ' + msg, self.disable)
+                        bibtools.warning('Warning 010a: ' + msg, self.disable)
                         errormsg = r'\textit{Warning: ' + msg + '}.'
-                        self.bibdata[c] = {'errormsg':errormsg, 'entrytype':'errormsg', 'entrykey':c}
+                        self.bib.data[c] = {'errormsg':errormsg, 'entrytype':'errormsg', 'entrykey':c}
     
                     self.insert_crossref_data(c)
                     self.insert_specials(c)
@@ -1202,10 +804,10 @@ class Bibdata(object):
                 self.create_citation_list(use_PyICU)
     
                 if ('<citealnum' in self.specials['citelabel']):
-                    alphanums = create_alphanum_citelabels(c, self.bibdata, self.citelist)
+                    alphanums = create_alphanum_citelabels(c, self.bib.data, self.citelist)
                     for c in self.citelist:
                         res = self.specials['citelabel'].replace('<citealnum>',alphanums[c])
-                        self.bibdata[c]['citelabel'] = res
+                        self.bib.data[c]['citelabel'] = res
     
                 ## Write out each individual bibliography entry. Some formatting options will actually cause the entry to
                 ## be deleted, so we need the check below to see if the return string is empty before writing it to the
@@ -1236,11 +838,11 @@ class Bibdata(object):
                 ## If the citation key is not in the database, then create a fake entry with it, using entrytype
                 ## "errormsg", and an item "errormsg" that contains the thing we want printed out in the citation
                 ## list to warn the user.
-                if c not in self.bibdata:
+                if c not in self.bib.data:
                     msg = 'citation key ``' + c + '\'\' is not in the bibliography database'
-                    bib_warning('Warning 010a: ' + msg, self.disable)
+                    bibtools.warning('Warning 010a: ' + msg, self.disable)
                     errormsg = r'\textit{Warning: ' + msg + '}.'
-                    self.bibdata[c] = {'errormsg':errormsg, 'entrytype':'errormsg', 'entrykey':c}
+                    self.bib.data[c] = {'errormsg':errormsg, 'entrytype':'errormsg', 'entrykey':c}
 
                 self.insert_crossref_data(c)
                 self.insert_specials(c)
@@ -1250,10 +852,10 @@ class Bibdata(object):
             self.create_citation_list(use_PyICU = use_PyICU)
 
             if ('<citealnum' in self.specials['citelabel']):
-                alphanums = create_alphanum_citelabels(c, self.bibdata, self.citelist)
+                alphanums = create_alphanum_citelabels(c, self.bib.data, self.citelist)
                 for c in self.citelist:
                     res = self.specials['citelabel'].replace('<citealnum>',alphanums[c])
-                    self.bibdata[c]['citelabel'] = res
+                    self.bib.data[c]['citelabel'] = res
 
             ## Write out each individual bibliography entry. Some formatting options will actually cause the entry to
             ## be deleted, so we need the check below to see if the return string is empty before writing it to the
@@ -1294,7 +896,7 @@ class Bibdata(object):
 
         ## Generate a sortkey for each citation.
         for c in self.citedict:
-            s = self.bibdata[c]['sortkey']
+            s = self.bib.data[c]['sortkey']
             self.sortlist.append(s)
             self.citelist.append(c)
 
@@ -1313,12 +915,12 @@ class Bibdata(object):
             pos_citekeys = [self.citelist[x] for x in pos_idx]
             neg_citekeys = [self.citelist[x] for x in neg_idx]
 
-            pos_idx = argsort(pos_sortkeys, use_PyICU = use_PyICU)
-            neg_idx = argsort(neg_sortkeys, reverse=True, use_PyICU = use_PyICU)
+            pos_idx = argsort(pos_sortkeys, use_PyICU = use_PyICU, collator = self.collator)
+            neg_idx = argsort(neg_sortkeys, reverse=True, use_PyICU = use_PyICU, collator = self.collator)
             self.sortlist = [neg_sortkeys[x] for x in neg_idx] + [pos_sortkeys[x] for x in pos_idx]
             self.citelist = [neg_citekeys[x] for x in neg_idx] + [pos_citekeys[x] for x in pos_idx]
         else:
-            idx = argsort(self.sortlist, use_PyICU = use_PyICU)
+            idx = argsort(self.sortlist, use_PyICU = use_PyICU, collator = self.collator)
             self.sortlist = [self.sortlist[x] for x in idx]
             self.citelist = [self.citelist[x] for x in idx]
 
@@ -1332,7 +934,7 @@ class Bibdata(object):
         ## the reference list is sorted alphabetically, but you want the list enumerated, then you need "sortnum"
         ## to get the enumerated value for each reference.
         for i,c in enumerate(self.citelist):
-            self.bibdata[c]['sortnum'] = i+1
+            self.bib.data[c]['sortnum'] = i+1
 
             ## If "sortnum" appears somewhere inside the special template definitions, where it is not yet defined,
             ## then we need to go back and redo the specials.
@@ -1377,7 +979,7 @@ class Bibdata(object):
         if (c == 'preamble'):
             return('')
 
-        entry = self.bibdata[c]
+        entry = self.bib.data[c]
         entrytype = entry['entrytype']
 
         ## If the journal format uses ProcSPIE like a journal, then you need to change the entrytype from
@@ -1388,19 +990,24 @@ class Bibdata(object):
             entry['entrytype'] = 'article'
             entry['journal'] = 'Proc.\\ SPIE'
 
-        if (entrytype in self.bstdict):
-            templatestr = self.bstdict[entrytype]
+        if (entrytype in self.bst.bstdict):
+            templatestr = self.bst.bstdict[entrytype]
         elif (entrytype == 'errormsg'):
-            if (unicode(self.bibdata[c]['citelabel']) == 'None'):
-                itemstr = r'\bibitem{' + c + '}\n' + self.bibdata[c]['errormsg']
+            if (unicode(self.bib.data[c]['citelabel']) == 'None'):
+                itemstr = r'\bibitem{' + c + '}\n' + self.bib.data[c]['errormsg']
             else:
-                itemstr = r'\bibitem[' + self.bibdata[c]['citelabel'] + ']{' + c + '}\n' + self.bibdata[c]['errormsg']
+                itemstr = r'\bibitem[' + self.bib.data[c]['citelabel'] + ']{' + c + '}\n' + self.bib.data[c]['errormsg']
             return(itemstr)
         else:
             msg = 'entrytype "' + entrytype + '" does not have a template defined in the .bst file'
-            bib_warning('Warning 011: ' + msg + '. Skipping ...', self.disable)
+            bibtools.warning('Warning 011: ' + msg + '. Skipping ...', self.disable)
             return('')
 
+        if self.user_script[0] and self.options['allow_scripts']:
+            if self.debug:
+                print('Evaluating the user script:\n' + 'v'*50 + '\n' + self.user_script[0] + '^'*50 + '\n')
+            exec(self.user_script[0], globals())        
+        
         ## Before checking which variables are defined and which not, we first need to evaluate the user-defined
         ## variables or else they will always be "undefined". To make this work, we also need to provide the user
         ## shortcut names:
@@ -1408,13 +1015,16 @@ class Bibdata(object):
             options = self.options      # pyflakes:ignore
             assert options
             citedict = self.citedict    # pyflakes:ignore
-            bstdict = self.bstdict      # pyflakes:ignore
-            bibdata = self.bibdata      # pyflakes:ignore
+            bstdict = self.bst.bstdict      # pyflakes:ignore
+            bibdata = self.bib.data      # pyflakes:ignore
+            pprint (self.user_variables)
             for user_var_name in self.user_variables:
-                user_var_value = eval(self.user_variables[user_var_name])
+                print(user_var_name)
+                user_var_value_expression = self.user_variables[user_var_name]
+                user_var_value = eval(user_var_value_expression)
                 entry[user_var_name] = user_var_value
 
-        bibitem_label = self.bibdata[c]['citelabel']
+        bibitem_label = self.bib.data[c]['citelabel']
 
         if (unicode(bibitem_label) == 'None'):
             itemstr = r'\bibitem{' + c + '}\n'
@@ -1423,7 +1033,7 @@ class Bibdata(object):
 
         if debug:
             print('Formatting entry "' + citekey + '"')
-            print('Template: "' + self.bstdict[entrytype] + '"')
+            print('Template: "' + self.bst.bstdict[entrytype] + '"')
             print('Field data: ' + repr(entry))
 
         try:
@@ -1433,7 +1043,7 @@ class Bibdata(object):
             itemstr = itemstr + templatestr
         except SyntaxError as err:
             itemstr = itemstr + '\\textit{' + err + '}.'
-            bib_warning('Warning 013: ' + err, self.disable)
+            bibtools.warning('Warning 013: ' + err, self.disable)
 
         ## If there are nested operators on the string, replace all even-level operators with \{}. Is there any need to
         ## do this with \textbf{} and \texttt{} as well?
@@ -1475,12 +1085,12 @@ class Bibdata(object):
         '''
 
         ## First check that the entrykey exists.
-        if ('errormsg' in self.bibdata[entrykey]):
+        if ('errormsg' in self.bib.data[entrykey]):
             return
-        if ('crossref' not in self.bibdata[entrykey]):
+        if ('crossref' not in self.bib.data[entrykey]):
             return
 
-        bibentry = self.bibdata[entrykey]
+        bibentry = self.bib.data[entrykey]
 
         if (fieldname == None):
             fieldnames = bibentry.keys()
@@ -1491,21 +1101,21 @@ class Bibdata(object):
                 fieldnames = [fieldname]
 
         ## Check that the cross-referenced entry actually exists. If not, then just move on.
-        if (self.bibdata[entrykey]['crossref'] in self.bibdata):
-            crossref_keys = self.bibdata[self.bibdata[entrykey]['crossref']]
+        if (self.bib.data[entrykey]['crossref'] in self.bib.data):
+            crossref_keys = self.bib.data[self.bib.data[entrykey]['crossref']]
         else:
-            bib_warning('Warning 015: bad cross reference. Entry "' + entrykey + '" refers to ' + 'entry "' + \
-                 self.bibdata[entrykey]['crossref'] + '", which doesn\'t exist.', self.disable)
+            bibtools.warning('Warning 015: bad cross reference. Entry "' + entrykey + '" refers to ' + 'entry "' + \
+                 self.bib.data[entrykey]['crossref'] + '", which doesn\'t exist.', self.disable)
             return
 
         for k in crossref_keys:
             if (k in bibentry): continue
             if (k not in fieldnames):
-                self.bibdata[entrykey][k] = self.bibdata[self.bibdata[entrykey]['crossref']][k]
+                self.bib.data[entrykey][k] = self.bib.data[self.bib.data[entrykey]['crossref']][k]
 
         ## What a "booktitle" is in the entry is normally a "title" in the crossref.
-        if ('title' in crossref_keys) and ('booktitle' not in self.bibdata[entrykey]):
-            self.bibdata[entrykey]['booktitle'] = self.bibdata[self.bibdata[entrykey]['crossref']]['title']
+        if ('title' in crossref_keys) and ('booktitle' not in self.bib.data[entrykey]):
+            self.bib.data[entrykey]['booktitle'] = self.bib.data[self.bib.data[entrykey]['crossref']]['title']
 
         return
 
@@ -1531,17 +1141,17 @@ class Bibdata(object):
         ## well, so let's add those.
         crossref_list = []
         for key in self.citedict:
-            if key not in self.bibdata: continue
-            if ('crossref' in self.bibdata[key]) and (self.bibdata[key]['crossref'] in self.bibdata):
-                crossref_list.append(self.bibdata[key]['crossref'])
+            if key not in self.bib.data: continue
+            if ('crossref' in self.bib.data[key]) and (self.bib.data[key]['crossref'] in self.bib.data):
+                crossref_list.append(self.bib.data[key]['crossref'])
 
         citekeylist = self.citedict.keys()
         if crossref_list: citekeylist.extend(crossref_list)
 
         ## A dict comprehension to extract only the relevant items in "bibdata". Note that these entries are mapped by
-        ## reference and not by value --- any changes to "bibextract" will also be reflected in "self.bibdata" is the
+        ## reference and not by value --- any changes to "bibextract" will also be reflected in "self.bib.data" is the
         ## change is to a mutable entry (such as a list or a dict).
-        bibextract = {c:self.bibdata[c] for c in citekeylist if c in self.bibdata}
+        bibextract = {c:self.bib.data[c] for c in citekeylist if c in self.bib.data}
         abbrevs = self.abbrevs if write_abbrevs else None
         export_bibfile(bibextract, outputfile, abbrevs)
         return
@@ -1585,14 +1195,14 @@ class Bibdata(object):
         bibextract = {}
         nentries = 0        ## count the number of entries found
 
-        for k in self.bibdata:
+        for k in self.bib.data:
             ## Get the list of name dictionaries from the entry.
             name_list_of_dicts = []
-            if ('author' in self.bibdata[k]):
-                name_list_of_dicts = namefield_to_namelist(self.bibdata[k]['author'], key=k, sep=sep, disable=self.disable)
-            if ('editor' in self.bibdata[k]):
-                namelist = namefield_to_namelist(self.bibdata[k]['editor'], key=k, sep=sep, disable=self.disable)
-                if not ('author' in self.bibdata[k]):
+            if ('author' in self.bib.data[k]):
+                name_list_of_dicts = namefield_to_namelist(self.bib.data[k]['author'], key=k, sep=sep, disable=self.disable)
+            if ('editor' in self.bib.data[k]):
+                namelist = namefield_to_namelist(self.bib.data[k]['editor'], key=k, sep=sep, disable=self.disable)
+                if not ('author' in self.bib.data[k]):
                     name_list_of_dicts = namelist
                 else:
                     ## If the entry has both authors and editors, then just merge the two name lists.
@@ -1621,7 +1231,7 @@ class Bibdata(object):
                                       (k, namekey, name[namekey], repr(name)))
 
                 if (key_matches == nkeys):
-                    bibextract[k] = self.bibdata[k]
+                    bibextract[k] = self.bib.data[k]
                     del bibextract[k]['entrykey']
                     nentries += 1
                     if self.debug: print('Match FULL NAME in entry "' + k + '": ' + repr(name))
@@ -1631,72 +1241,7 @@ class Bibdata(object):
 
         return
 
-    ## =============================
-    def replace_abbrevs_with_full(self, fieldstr, resultstr):
-        '''
-        Given an input str, locate the abbreviation key within it and replace the abbreviation with its full form.
 
-        Once the abbreviation key is found, remove it from the "fieldstr" and add the full form to the "resultstr".
-
-        Parameters
-        ==========
-        fieldstr : str
-            The string to search for the abbrevation key.
-        resultstr : str
-            The thing to hold the abbreviation's full form. (Note that it might not be empty on input.)
-
-        Returns
-        =======
-        fieldstr : str
-            The string to search for the abbrevation key.
-        resultstr : str
-            The thing to hold the abbreviation's full form.
-        end_of_field : bool
-            Whether the abbreviation key was at the end of the current field.
-        '''
-
-        end_of_field = False
-
-        ## The "abbrevkey_pattern" seaerches for the first '#' or ',' that is not preceded by a backslash. If this
-        ## pattern is found, then we've found the *end* of the abbreviation key.
-        for match in re.finditer(self.abbrevkey_pattern, fieldstr):
-            endpos = match.end()
-            if (match.group(0)[0] == '#'):
-                abbrevkey = fieldstr[:endpos-1].strip()
-                ## If the "abbreviation" is an integer, then it's not an abbreviation but rather a number, and just
-                ## return it as-is.
-                if abbrevkey.isdigit() or not self.options['use_abbrevs']:
-                    resultstr += unicode(abbrevkey)
-                elif (abbrevkey not in self.abbrevs):
-                    bib_warning('Warning 016a: for the entry ending on line #' + unicode(self.i) + ' of file "' + \
-                         self.filename + '", cannot find the abbreviation key "' + abbrevkey + '". Skipping ...',
-                         self.disable)
-                    resultstr += self.options['undefstr']
-                else:
-                    resultstr += self.abbrevs[abbrevkey].strip()
-                fieldstr = fieldstr[endpos+1:].strip()
-                break
-            elif (match.group(0)[0] == ','):
-                abbrevkey = fieldstr[:endpos-1].strip()
-                ## If the "abbreviation" is an integer, then it's not an abbreviation
-                ## but rather a number, and just return it as-is.
-                if abbrevkey.isdigit() or not self.options['use_abbrevs']:
-                    resultstr += unicode(abbrevkey)
-                elif (abbrevkey not in self.abbrevs):
-                    bib_warning('Warning 016b: for the entry ending on line #' + unicode(self.i) + ' of file "' + \
-                         self.filename + '", cannot find the abbreviation key "' + abbrevkey + '". Skipping ...',
-                         self.disable)
-                    resultstr += self.options['undefstr']
-                else:
-                    resultstr += self.abbrevs[abbrevkey].strip()
-
-                fieldstr = fieldstr[endpos+1:].strip()
-                end_of_field = True
-                break
-            else:
-                raise SyntaxError('if-else mismatch inside replace_abbrevs_with_full().')
-
-        return(fieldstr, resultstr, end_of_field)
 
     ## =============================
     def write_auxfile(self, filename=None):
@@ -1717,7 +1262,7 @@ class Bibdata(object):
 
         filehandle = open(filename, 'w')
 
-        for entry in self.bibdata:
+        for entry in self.bib.data:
             filehandle.write('\\citation{' + entry + '}\n'.encode('utf-8'))
 
         filehandle.write('\n')
@@ -1901,7 +1446,7 @@ class Bibdata(object):
         '''
 
         citekeys = set(self.citedict.keys())
-        datakeys = set(self.bibdata.keys())
+        datakeys = set(self.bib.data.keys())
         diff = citekeys.difference(datakeys)
 
         if self.debug:
@@ -1927,9 +1472,9 @@ class Bibdata(object):
         ## then we have to go back and parse the database a second time, this time adding the crossreferenced items.
         ## Once that's done, *then* we can add cross-referenced data into the original cited entries.
         crossref_list = []
-        for key in self.bibdata:
-            if ('crossref' in self.bibdata[key]):
-                crossref_list.append(self.bibdata[key]['crossref'])
+        for key in self.bib.data:
+            if ('crossref' in self.bib.data[key]):
+                crossref_list.append(self.bib.data[key]['crossref'])
 
         if crossref_list:
             self.searchkeys += crossref_list
@@ -1946,7 +1491,7 @@ class Bibdata(object):
             The key of the entry to which we want to add special fields.
         '''
 
-        entry = self.bibdata[entrykey]
+        entry = self.bib.data[entrykey]
 
         if ('pages' in entry):
             (startpage,endpage) = parse_pagerange(entry['pages'], entrykey, self.disable)
@@ -1958,7 +1503,7 @@ class Bibdata(object):
                 entry['doi'] = 'http://dx.doi.org/' + entry['doi']
 
         ## Define the variables "citekey" and "citenum".
-        self.bibdata[entrykey]['citekey'] = entrykey
+        self.bib.data[entrykey]['citekey'] = entrykey
         if self.citedict:
             #ncites = len(self.citedict)
             #ndigits = 1 + int(log10(ncites))    ## note that this requires import of: from math import log10
@@ -1966,7 +1511,7 @@ class Bibdata(object):
         else:
             citenum = '1'
 
-        self.bibdata[entrykey]['citenum'] = citenum
+        self.bib.data[entrykey]['citenum'] = citenum
 
         ## Next loop through the "special" variables. These are variable definitions from the SPECIAL-
         ## TEMPLATES section of the style file. Note that rather than looping through
@@ -1981,14 +1526,14 @@ class Bibdata(object):
             ## Need to treat citealpha specially. Check if it needs to be present before anything else is defined.
             if ('<citealpha.' in templatestr) or ('<citealpha>' in templatestr):
                 citealpha = create_citation_alpha(entry, self.options)
-                self.bibdata[entrykey]['citealpha'] = citealpha
+                self.bib.data[entrykey]['citealpha'] = citealpha
 
             ## If this special template is an implicitly indexed one, then it can only be used after explicit index
             ## replacement (such as within an implicit loop) and not by itself, so we have to skip it here. We
             ## can't use "if (key in self.implicitly_indexed_vars)" here because the "key" contains the implicit
             ## index too (i.e. "name.n" and not "name"), and so the strings in the "implicitly_indexed_vars" list
             ## are not quite what we have in our keys here.
-            template_has_implicit_index = True if re.search(self.implicit_index_pattern, templatestr) else False
+            template_has_implicit_index = True if re.search(bibtools.implicit_index_pattern, templatestr) else False
             if re.search('\.n\.', key) or re.search('\.n$', key) or template_has_implicit_index:
                 continue
 
@@ -2002,9 +1547,9 @@ class Bibdata(object):
             ## piece of code is not quite ideal, but it is an easy solution that has a low probability of breaking
             ## (low prob. that a user will need to use the "undefstr" in a template).
             if template_has_implicit_index and (self.options['undefstr'] not in res):
-                self.bibdata[entrykey][key] = res
+                self.bib.data[entrykey][key] = res
             elif (res not in (None, '', self.options['undefstr'])):
-                self.bibdata[entrykey][key] = res
+                self.bib.data[entrykey][key] = res
 
         return
 
@@ -2034,7 +1579,7 @@ class Bibdata(object):
         if (num_obrackets != num_cbrackets):
             msg = 'In the template for "' + key + '" there are ' + unicode(num_obrackets) + \
                   ' open brackets "[", but ' + unicode(num_cbrackets) + ' close brackets "]" in the formatting string'
-            bib_warning('Warning 012: ' + msg, self.disable)
+            bibtools.warning('Warning 012: ' + msg, self.disable)
             okay = False
 
         ## Check that no ']' appears before a '['.
@@ -2042,7 +1587,7 @@ class Bibdata(object):
         if (-1 in levels):
             msg = 'A closed bracket "]" occurs before a corresponding open bracket "[" in the ' + \
                   'template string "' + templatestr + '"'
-            bib_warning('Warning 027: ' + msg, self.disable)
+            bibtools.warning('Warning 027: ' + msg, self.disable)
             okay = False
 
         ## Finally, check that no '[', ']', or '|' appear inside a variable name.
@@ -2050,19 +1595,19 @@ class Bibdata(object):
         for var in variables:
             if ('[' in var):
                 msg = 'An invalid "[" character appears inside the template variable "' + var + '"'
-                bib_warning('Warning 028a: ' + msg, self.disable)
+                bibtools.warning('Warning 028a: ' + msg, self.disable)
                 okay = False
             if (']' in var):
                 msg = 'An invalid "]" character appears inside the template variable "' + var + '"'
-                bib_warning('Warning 028b: ' + msg, self.disable)
+                bibtools.warning('Warning 028b: ' + msg, self.disable)
                 okay = False
             if ('|' in var):
                 msg = 'An invalid "|" character appears inside the template variable "' + var + '"'
-                bib_warning('Warning 028c: ' + msg, self.disable)
+                bibtools.warning('Warning 028c: ' + msg, self.disable)
                 okay = False
             if ('<' in var[1:-1]):
                 msg = 'An invalid "<" character appears inside the template variable "' + var + '"'
-                bib_warning('Warning 028d: ' + msg, self.disable)
+                bibtools.warning('Warning 028d: ' + msg, self.disable)
                 okay = False
 
         return(okay)
@@ -2092,7 +1637,7 @@ class Bibdata(object):
 
         ## To look for an indexed variable, it has to have the form of a (dot plus an integer), or (dot plus 'n'), or
         ## (dot plus 'N'); and then followed by either another dot or by '>'.
-        has_index = True if re.search(self.index_pattern, templatestr) else False
+        has_index = True if re.search(bibtools.index_pattern, templatestr) else False
         has_implicit_loop = ('...' in templatestr)
 
         if not has_implicit_loop and not has_index:
@@ -2110,7 +1655,7 @@ class Bibdata(object):
                     templatestr = re.sub(r'(?<=\.)n(?=\.)|(?<=\.)n(?=>)', elem['index'], templatestr)
             return(templatestr)
 
-        names = get_names(self.bibdata[entrykey], templatestr)
+        names = get_names(self.bib.data[entrykey], templatestr)
         if not names:
             return(templatestr)
         num_names = len(names)
@@ -2118,7 +1663,7 @@ class Bibdata(object):
         ## Get the key for the template to look up in the looped template data dictionary (generated when the BST
         ## file is parsed).
         if (templatekey is None):
-            templatekey = self.bibdata[entrykey]['entrytype']
+            templatekey = self.bib.data[entrykey]['entrytype']
 
         loop_data = self.looped_templates[templatekey]
         loop_varname = loop_data['varname']
@@ -2144,13 +1689,13 @@ class Bibdata(object):
         else:
             msg = 'Warning 031a: the template string "' + templatestr + '" is malformed. The index element "' + \
                   loop_start_index + '" is not recognized.'
-            bib_warning(msg)
+            bibtools.warning(msg)
 
         ## Check that the indices are valid.
         if not loop_end_index.isdigit() and (loop_end_index != 'N'):
             msg = 'Warning 031b: the template string "' + templatestr + '" is malformed. The index element "' + \
                   loop_end_index + '" is not recognized.'
-            bib_warning(msg)
+            bibtools.warning(msg)
 
         ## What is the maximum number of allowed names? If the number of names in the namelist is more than the maximum
         ## allowed, then we need to replace the end of the formatted namelist with the "etal_message". Note that, in
@@ -2239,10 +1784,10 @@ class Bibdata(object):
             The template string with all variables replaced.
         '''
 
-        bibentry = self.bibdata[entrykey]
+        bibentry = self.bib.data[entrykey]
 
         ## Fill out the template if there is an implicit loop structure.
-        template_has_implicit_index = True if re.search(self.implicit_index_pattern, templatestr) else False
+        template_has_implicit_index = True if re.search(bibtools.implicit_index_pattern, templatestr) else False
         template_has_implicit_loop = True if '...' in templatestr else False
         if template_has_implicit_loop:
             ## In order to check if all of the variables use din an implicit loop are undefined, we make a template
@@ -2641,7 +2186,7 @@ class Bibdata(object):
                 indexname = index_elements[0]
                 msg = 'Warning 029a: the ' + fieldname + 'field of entry ' + entrykey + ' is not a list and thus is ' + \
                       'not indexable by "' + indexname + '". Aborting template substitution'
-                bib_warning(msg, disable=self.disable)
+                bibtools.warning(msg, disable=self.disable)
                 return(None)
             else:
                 newfield = field[int(index_elements[0])]
@@ -2842,9 +2387,9 @@ class Bibdata(object):
                 result = match.group(0)[13:-1]      ## remove function name and parentheses
                 (variable_to_eval, singular_form, plural_form) = result.split(',')
 
-                if (variable_to_eval not in self.bibdata[entrykey]):
+                if (variable_to_eval not in self.bib.data[entrykey]):
                     newfield = ''
-                elif (len(self.bibdata[entrykey][variable_to_eval]) == 1):
+                elif (len(self.bib.data[entrykey][variable_to_eval]) == 1):
                     suffix = self.options[singular_form.strip()]
                     newfield = field + suffix
                 else:
@@ -2888,9 +2433,9 @@ class Bibdata(object):
 #                (variable_to_eval, test_length, var_if_equals, var_if_notequals) = result.split(',')
 #                #pdb.set_trace()
 #
-#                if (variable_to_eval not in self.bibdata[entrykey]):
+#                if (variable_to_eval not in self.bib.data[entrykey]):
 #                    newfield = ''
-#                elif (len(self.bibdata[entrykey][variable_to_eval]) == int(test_length)):
+#                elif (len(self.bib.data[entrykey][variable_to_eval]) == int(test_length)):
 #                    suffix = self.options[var_if_equals.strip()]
 #                    newfield = field + suffix
 #                else:
@@ -2908,9 +2453,9 @@ class Bibdata(object):
 #                result = match.group(0)[21:-1]      ## remove function name and parentheses
 #                (variable_to_eval, test_length, var_if_lessthan, var_if_notlessthan) = result.split(',')
 #
-#                if (variable_to_eval not in self.bibdata[entrykey]):
+#                if (variable_to_eval not in self.bib.data[entrykey]):
 #                    newfield = ''
-#                elif (len(self.bibdata[entrykey][variable_to_eval]) == int(test_length)):
+#                elif (len(self.bib.data[entrykey][variable_to_eval]) == int(test_length)):
 #                    suffix = self.options[var_if_lessthan.strip()]
 #                    newfield = field + suffix
 #                else:
@@ -2928,9 +2473,9 @@ class Bibdata(object):
 #                result = match.group(0)[21:-1]      ## remove function name and parentheses
 #                (variable_to_eval, test_length, var_if_morethan, var_if_notmorethan) = result.split(',')
 #
-#                if (variable_to_eval not in self.bibdata[entrykey]):
+#                if (variable_to_eval not in self.bib.data[entrykey]):
 #                    newfield = ''
-#                elif (len(self.bibdata[entrykey][variable_to_eval]) == int(test_length)):
+#                elif (len(self.bib.data[entrykey][variable_to_eval]) == int(test_length)):
 #                    suffix = self.options[var_if_morethan.strip()]
 #                    newfield = field + suffix
 #                else:
@@ -2945,7 +2490,7 @@ class Bibdata(object):
             else:
                 msg = 'Warning 029c: the template for entry ' + entrykey + ' has an unknown function ' + \
                       '"' + index_elements[0] + '". Aborting template substitution'
-                bib_warning(msg, disable=self.disable)
+                bibtools.warning(msg, disable=self.disable)
                 return(None)
 
         ## If the indexer is a numerical range...
@@ -2979,7 +2524,7 @@ class Bibdata(object):
             indexname = index_elements[0]
             msg = 'Warning 029d: the ' + fieldname + 'field of entry ' + entrykey + ' is not a dictionary and thus is ' + \
                   'not indexable by "' + indexname + '". Aborting template substitution'
-            bib_warning(msg, disable=self.disable)
+            bibtools.warning(msg, disable=self.disable)
             return(None)
         elif (index_elements[0] not in field):
             return(None)
@@ -2993,7 +2538,7 @@ class Bibdata(object):
 
         ## The code should never reach here!
         msg = 'Warning 029e: Invalid field type error. Aborting template substitution'
-        bib_warning(msg, disable=self.disable)
+        bibtools.warning(msg, disable=self.disable)
         return(None)
 
     ## ===================================
@@ -3015,7 +2560,7 @@ class Bibdata(object):
         variables = re.findall(r'<.*?>', templatestr)
         indexed_vars = []
         for v in variables:
-            found_indexed_var = re.findall(self.index_pattern, v)
+            found_indexed_var = re.findall(bibtools.index_pattern, v)
             if found_indexed_var:
                 varname = v[1:-1]
                 if (varname not in indexed_vars):
@@ -3177,13 +2722,13 @@ def namefield_to_namelist(namefield, key=None, sep='and', disable=None):
 
     ## Look for common typos.
     if re.search(r'\s'+sep+',\s', namefield, re.UNICODE):
-        bib_warning('Warning 017a: The name string in entry "' + unicode(key) + '" has " '+sep+', ", which is likely a'
+        bibtools.warning('Warning 017a: The name string in entry "' + unicode(key) + '" has " '+sep+', ", which is likely a'
              ' typo. Continuing on anyway ...', disable)
     if re.search(r', '+sep, namefield, re.UNICODE):
-        bib_warning('Warning 017b: The name string in entry "' + unicode(key) + '" has ", '+sep+'", which is likely a'
+        bibtools.warning('Warning 017b: The name string in entry "' + unicode(key) + '" has ", '+sep+'", which is likely a'
              ' typo. Continuing on anyway ...', disable)
     if re.search(r'\s'+sep+'\s+'+sep+'\s', namefield, re.UNICODE):
-        bib_warning('Warning 017c: The name string in entry "' + unicode(key) + '" has two "'+sep+'"s separated by spaces, '
+        bibtools.warning('Warning 017c: The name string in entry "' + unicode(key) + '" has two "'+sep+'"s separated by spaces, '
              'which is likely a typo. Continuing on anyway ...', disable)
         ## Replace the two "and"s with just one "and".
         namefield = re.sub(r'(?<=\s)'+sep+'\s+'+sep+'(?=\s)', namefield, sep, re.UNICODE)
@@ -3439,15 +2984,15 @@ def get_quote_levels(s, disable=None, debug=False):
         clevels[j] = stack.count('c')
 
     if (alevels[-1] > 0):
-        bib_warning('Warning 018a: found mismatched "``"..."''" quote pairs in the input string "' + s + \
+        bibtools.warning('Warning 018a: found mismatched "``"..."''" quote pairs in the input string "' + s + \
              '". Ignoring the problem and continuing on ...', disable)
         alevels[-1] = 0
     if (blevels[-1] > 0):
-        bib_warning('Warning 018b: found mismatched "`"..."\'" quote pairs in the input string "' + s + \
+        bibtools.warning('Warning 018b: found mismatched "`"..."\'" quote pairs in the input string "' + s + \
              '". Ignoring the problem and continuing on ...', disable)
         blevels[-1] = 0
     if (clevels[-1] > 0):
-        bib_warning('Warning 018c: found mismatched "..." quote pairs in the input string "' + s + \
+        bibtools.warning('Warning 018c: found mismatched "..." quote pairs in the input string "' + s + \
              '". Ignoring the problem and continuing on ...', disable)
         clevels[-1] = 0
 
@@ -3575,7 +3120,7 @@ def enwrap_nested_string(s, delims=('{','}'), odd_operator=r'\textbf', even_oper
 
     oplevels = get_delim_levels(s, delims, odd_operator)
     if (oplevels[-1] > 0):
-        bib_warning('Warning 019: found mismatched "{","}" brace pairs in the input string. Ignoring the problem and'
+        bibtools.warning('Warning 019: found mismatched "{","}" brace pairs in the input string. Ignoring the problem and'
              ' continuing on ...', disable)
         return(s)
 
@@ -3625,7 +3170,7 @@ def enwrap_nested_quotes(s, disable=None, debug=False):
     ## First check for cases where parsing is going to be very complicated. For now, we should just flag these cases to
     ## inform the user that they need to modify the source to tell the parser what they want to do.
     if ("```" in s) or ("'''" in s):
-        bib_warning('Warning 020: the input string ["' + s + '"] contains multiple unseparated quote characters.'
+        bibtools.warning('Warning 020: the input string ["' + s + '"] contains multiple unseparated quote characters.'
              ' Bibulous cannot unnest the single and double quotes from this set, so the separate quotations must be '
              ' physically separated like ``{\:}``, for example. Ignoring the quotation marks and continuing ...',
              disable)
@@ -4123,7 +3668,7 @@ def namestr_to_namedict(namestr, disable=None):
                 i = match.start()
                 j = match.end()
                 if (z[i] == 0) and (namestr[j+1] != ')'):
-                    bib_warning('Warning 021: The name token "' + n + '" in namestring "' + namestr + \
+                    bibtools.warning('Warning 021: The name token "' + n + '" in namestring "' + namestr + \
                          '" has a "." inside it, which may be a typo. Ignoring ...', disable)
 
         namedict = {}
@@ -4163,7 +3708,7 @@ def namestr_to_namedict(namestr, disable=None):
         third_nametokens = thirdpart.strip().split(' ')
 
         if (len(second_nametokens) != 1):
-            bib_warning('Warning 022: the BibTeX format for namestr="' + namestr + '" is malformed.\nThere should ' + \
+            bibtools.warning('Warning 022: the BibTeX format for namestr="' + namestr + '" is malformed.\nThere should ' + \
                  'be only one name in the second part of the three comma-separated name elements.', disable)
             return({'last':'???'})
 
@@ -4203,7 +3748,7 @@ def namestr_to_namedict(namestr, disable=None):
         namedict['suffix'] = fifthpart.strip()
 
     else:
-        bib_warning('Warning 023: the BibTeX format for namestr="' + namestr + '" is malformed.\nThere should ' + \
+        bibtools.warning('Warning 023: the BibTeX format for namestr="' + namestr + '" is malformed.\nThere should ' + \
              'never be more than four commas in a given name.', disable)
         return({'last':'???'})
 
@@ -4319,7 +3864,7 @@ def get_edition_ordinal(edition_field, disable=None):
 
     ## Add the ordinal string to the number.
     if (edition_field == '0'):
-        bib_warning('Warning 024: an edition number of "0" is invalid. Cannot create ordinal.', disable)
+        bibtools.warning('Warning 024: an edition number of "0" is invalid. Cannot create ordinal.', disable)
         return(edition_field)
 
     if (edition_field == '1'):
@@ -4434,10 +3979,10 @@ def parse_pagerange(pages_str, citekey=None, disable=None):
     if startpage.isdigit() and endpage and endpage.isdigit():
         if int(endpage) < int(startpage):
             if (citekey != None):
-                bib_warning('Warning 025a: the "pages" field in entry "' + citekey + '" has a malformed page range '
+                bibtools.warning('Warning 025a: the "pages" field in entry "' + citekey + '" has a malformed page range '
                      '(endpage < startpage). Ignoring ...', disable)
             else:
-                bib_warning('Warning 025b: the "pages" field "' + pages_str + '" is malformed, since endpage < '
+                bibtools.warning('Warning 025b: the "pages" field "' + pages_str + '" is malformed, since endpage < '
                      'startpage. Ignoring ...', disable)
 
     return(startpage, endpage)
@@ -4468,40 +4013,7 @@ def parse_nameabbrev(abbrevstr):
 
     return(nameabbrev_dict)
 
-## =============================
-def filter_script(line):
-    '''
-    Remove elements from a Python script which are provide the most egregious security flaws; also replace some
-    identifiers with their correct namespace representation.
 
-    Parameters
-    ----------
-    line : str
-        The line of source code to filter.
-
-    Returns
-    -------
-    filtered : str
-        The filtered line of source code.
-    '''
-
-    line = line.strip()
-    os_pattern = re.compile(r'\Wos.', re.UNICODE)
-    sys_pattern = re.compile(r'\Wsys.', re.UNICODE)
-
-    if line.startswith('import') or re.search(os_pattern, line) or re.search(sys_pattern, line):
-        filtered = ''
-    else:
-        filtered = line
-
-    ## Replace any use of "entry", "options", "citedict", or "bstdict" with the needed identifier
-    ## for the namespace inside format_bibitem().
-    filtered = re.sub(r'(?<=\W)entry(?=\W)', 'self.bibdata[c]', line, re.UNICODE)
-    filtered = re.sub(r'(?<=\W)options(?=\W)', 'self.options', line, re.UNICODE)
-    filtered = re.sub(r'(?<=\W)citedict(?=\W)', 'self.citedict', line, re.UNICODE)
-    filtered = re.sub(r'(?<=\W)bstdict(?=\W)', 'self.bstdict', line, re.UNICODE)
-
-    return(filtered)
 
 ## =============================
 def str_is_integer(s):
@@ -4529,33 +4041,9 @@ def str_is_integer(s):
 ## =============================
 def bib_warning(msg, disable=None):
     '''
-    Print a warning message, with the option to disable any given message.
-
-    Parameters
-    ----------
-    msg : str
-        The warning message to print.
-    disable : list of int, optional
-        The list of warning message numbers that the user wishes to disable (i.e. ignore).
+    Moved to bibulous_tools
     '''
-
-    if (disable == None):
-        print(msg)
-        return
-
-    ## For each number in the "ignore" list, find out if the warning message is one of the ones to ignore. If so, then
-    ## do nothing.
-    show_warning = True
-    for i in disable:
-        s = ('Warning %03i' % i)
-        if msg.startswith(s):
-            show_warning = False
-            break
-
-    if show_warning:
-        print(msg)
-
-    return
+    
 
 ## =============================
 def create_citation_alpha(entry, options):
@@ -4646,42 +4134,7 @@ def toplevel_split(s, splitchar, levels):
 
     return(split_list)
 
-## ===================================
-def get_variable_name_elements(variable):
-    '''
-    Split the variable name into "name" (left-hand-side part), "iterator" (middle part), and "remainder" (the right-
-    hand-side part).
 
-    With these three elements, we will know how to build a template variable inside the implicit loop.
-
-    Parameters
-    ----------
-    variable : str
-        The variable name to be parsed.
-
-    Returns
-    -------
-    var_dict : dict
-        The dictionary containing elements of the variable name, with keys 'varname', 'prefix', 'index', and 'suffix'. \
-        The input variable can be reconstructed with name + '.' + prefix + index + suffix.
-    '''
-
-    varlist = variable.split('.')
-    var_dict = {}
-    var_dict['name'] = varlist[0]
-    var_dict['index'] = ''
-    var_dict['prefix'] = ''
-    var_dict['suffix'] = ''
-
-    for i,piece in enumerate(varlist[1:]):
-        if piece.isdigit() or (piece == 'n') or (piece == 'N'):
-            var_dict['index'] = piece
-        elif (var_dict['index'] == ''):
-            var_dict['prefix'] += piece + '.'
-        else:
-            var_dict['suffix'] += '.' + piece
-
-    return(var_dict)
 
 ## ===================================
 def get_names(entry, templatestr):
@@ -4884,7 +4337,7 @@ def locale_keyfunc(keyfunc):
         return locale.strxfrm(keyfunc(obj))
     return locale_wrapper
 
-def locale_keyfunc_icu(keyfunc):
+def locale_keyfunc_icu(keyfunc, collator):
     """
     Utility to sort by string with locale considerations :
     sorted(array_of_objects, key=locale_keyfunc(attrgetter('name')))
@@ -4901,7 +4354,7 @@ def locale_keyfunc_icu(keyfunc):
 
 ## =============================
 
-def argsort(seq, reverse=False, use_PyICU = False):
+def argsort(seq, reverse=False, use_PyICU = False, collator = None):
     '''
     Return the indices for producing a sorted list.
 
@@ -4924,7 +4377,7 @@ def argsort(seq, reverse=False, use_PyICU = False):
         #if sys.version_info[0] == 2:
             #res = sorted(range(len(seq)), key=seq.__getitem__, cmp=collator.compare, reverse=reverse)
         #elif sys.version_info[0] == 3:
-        res = sorted(range(len(seq)), key=locale_keyfunc_icu(seq.__getitem__), reverse=reverse)  
+        res = sorted(range(len(seq)), key=locale_keyfunc_icu(seq.__getitem__,collator), reverse=reverse)  
             
     else:
         if (platform.system() == 'Darwin'):
@@ -5003,106 +4456,6 @@ def create_alphanum_citelabels(entrykey, bibdata, citelist):
 
     return(citelabels)
 
-## =============================
-def get_implicit_loop_data(templatestr):
-    '''
-    From a template containing an implicit loop ('...' notation), build a full-size template without an ellipsis.
-
-    Right now, the code only allows one implicit loop in any given template.
-
-    Parameters
-    ----------
-    templatestr : str
-        The input template string (containing the implicit loop ellipsis notation).
-
-    Returns
-    -------
-    loop_data : dict
-        A dictionary containing all of the information needed to build a loop for a template.
-
-    '''
-
-    idx = templatestr.find('...')
-    lhs = templatestr[:idx]
-    rhs = templatestr[idx+3:]
-
-    ## In the string to the left of the ellipsis, look for the template variable farthest to the right. Note that
-    ## we can't just set "lhs_var = lhs_variables[-1]" because we need to know the *position* of the variable and
-    ## not just the variable name. And if the name occurs more than once in the template, then we can't easily get
-    ## the position from the name. Thus, we iterate through the string until we encounter the last match, and
-    ## return that.
-    match = re.search(r'<.*?>', lhs)
-    if not match:
-        msg = 'Warning 030a: the template string "' + templatestr + '" is malformed. It does not have a ' + \
-              'template variable to the left of the ellipsis (implied loop).'
-        bib_warning(msg)
-        return(None)
-
-    for i,match in enumerate(re.finditer(r'<.*?>', lhs)):
-        if (i > 1):
-            msg = 'Warning 030b: the template string "' + templatestr + '" is malformed. Only one variable is allowed ' + \
-                  'but the template has more than one.'
-            bib_warning(msg)
-        lhs_span = match.span()
-    lhs_var = match.group()
-
-    ## Get the part of the template that goes before the implicit loop.
-    before_loop_stuff = lhs[:lhs_span[0]]
-
-    ## "get_variable_name_elements()" returns a dictionary with keys "index", "name", "prefix", and "suffix".
-    lhs_var_dict = get_variable_name_elements(lhs_var[1:-1])
-
-    ## Now that we have the info about the LHS variable, let's also find out the "glue" string that needs to be
-    ## inserted between all of the loop elements.
-    lhs_glue = lhs[lhs_span[1]:]
-
-    ## In the string to the right of the ellipsis, look for the template variable farthest to the right.
-    match = re.search(r'<.*?>', rhs)
-    if not match:
-        msg = 'Warning 030c: the template string "' + templatestr + '" is malformed. It does not have a ' + \
-              'template variable to the right of the ellipsis (implied loop).'
-        bib_warning(msg)
-        return(None)
-
-    rhs_span = match.span()
-    rhs_var = match.group()
-    rhs_var_dict = get_variable_name_elements(rhs_var[1:-1])
-
-    if (rhs_var_dict['name'] != lhs_var_dict['name']) or (rhs_var_dict['prefix'] != lhs_var_dict['prefix']) or \
-            (rhs_var_dict['suffix'] != lhs_var_dict['suffix']):
-        msg = 'Warning 030d: the template string "' + templatestr + '" is malformed. The LHS variable "' + \
-              lhs_var + '" is not the same as the RHS variable "' + rhs_var + '".'
-        bib_warning(msg)
-
-    ## Get the RHS "glue" element. If it has curly braces in it, then we differentiate the conditions between when
-    ## the number of names is only two (then use only the stuff inside the curly braces) and more than two (then
-    ## use all of the glue). In both cases, remove the first and last curly braces before applying the glue.
-    rhs_glue = rhs[0:rhs_span[0]]
-    if re.search(r'\{.*?\}', rhs_glue):
-        glue_start = rhs_glue.find('{')
-        glue_end = rhs_glue.rfind('}')
-        last_glue_if_only_two = rhs_glue[glue_start+1:glue_end]
-        last_glue = rhs_glue[:glue_start] + rhs_glue[glue_start+1:glue_end] + rhs_glue[glue_end+1:]
-    else:
-        last_glue_if_only_two = rhs_glue
-        last_glue = rhs_glue
-
-    ## Get the part of the template that goes after the implicit loop.
-    after_loop_stuff = rhs[rhs_span[1]:]
-
-    loop_data = {}
-    loop_data['varname'] = lhs_var_dict['name']
-    loop_data['start_index'] = lhs_var_dict['index']
-    loop_data['end_index'] = rhs_var_dict['index']
-    loop_data['glue'] = lhs_glue
-    loop_data['var_prefix'] = lhs_var_dict['prefix']
-    loop_data['var_suffix'] = lhs_var_dict['suffix']
-    loop_data['last_glue'] = last_glue
-    loop_data['last_glue_if_only_two'] = last_glue_if_only_two
-    loop_data['before_loop_stuff'] = before_loop_stuff
-    loop_data['after_loop_stuff'] = after_loop_stuff
-
-    return(loop_data)
 
 ## ==================================================================================================
 
@@ -5153,3 +4506,14 @@ if (__name__ == '__main__'):
         #os.system('kwrite ' + main_bibdata.filedict['bbl'])
         print('DONE')
 
+
+import os, time
+from stat import * # ST_SIZE etc
+        
+try:
+    st = os.stat(arg_bibfile)
+except IOError:
+    print ("failed to get information about", arg_bibfile)
+else:
+    print ("file size:"+str(st[stat.ST_SIZE]))
+    print ("file modified:"+str(time.asctime(time.localtime(st[stat.ST_MTIME]))))
