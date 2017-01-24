@@ -525,10 +525,12 @@ if (__name__ == '__main__'):
         arg_bibfile = args[0]
     else:
         ## Use the test example input.
-        arg_bibfile = './test/thiruv.bib'
+        arg_bibfile = './test/underscore.bib'
         
     main_bibdata = Bib()
     main_bibdata.parse_bibfile(arg_bibfile, culldata=False , searchkeys=None , 
                               parse_only_entrykeys=False , 
                               options=bibtools.default_options )
     print('DONE')
+    
+    print(main_bibdata.data['icpp-mpi-atomicity']['url'])

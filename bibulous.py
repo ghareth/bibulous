@@ -36,6 +36,7 @@ from bibulous_bst import Bst
 from bibulous_tools import get_delim_levels
 from bibulous_tools import get_variable_name_elements
 from bibulous_tools import latex_to_utf8
+from bibulous_tools import utf8_to_latex
 sorting_with = False
 
 #import pdb          ## put "pdb.set_trace()" at any place you want to interact with pdb
@@ -2137,6 +2138,9 @@ class Bibdata(object):
                     return(newfield)
                 else:
                     return(self.get_indexed_variable(newfield, newindexer, entrykey, options=options))
+            elif indexer.startswith('.urltoLaTeX()'):
+                newfield = utf8_to_latex(field)
+                return (newfield)
 
 
 #            elif indexer.startswith('.if_length_equals('):
@@ -3991,9 +3995,9 @@ if (__name__ == '__main__'):
         files = arg_auxfile
     else:
         ## Use the test example input.
-        arg_bibfile = './test/thiruv.bib'
-        arg_auxfile = './test/test_thiruv.aux'
-        arg_bstfile = './templates/default.bst'
+        arg_bibfile = './test/underscore.bib'
+        arg_auxfile = './test/test_underscore.aux'
+        arg_bstfile = './templates/underscore.bst'
         files = [arg_bibfile, arg_auxfile, arg_bstfile]
 
 

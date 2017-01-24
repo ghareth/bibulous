@@ -394,6 +394,39 @@ def latex_to_utf8(s):
 
     return(s)
 
+## =============================
+def utf8_to_latex(s):
+    '''
+    Translate Unicode to LaTeX-markup. DEVELOPMENTAL ONLY
+    
+    Translate _ to \_
+
+    Parameters
+    ----------
+    s : str
+        The string to translate.
+
+    Returns
+    -------
+    s : str
+        The translated version of the input.
+    '''
+
+    ## First, some easy replacements.
+    trans = {'_' : r'\_',
+             '$' : r'\$',
+             '%' : r'\%',
+             '&' : r'\&',
+             '#' : r'\#'}
+    
+     
+    for c in trans:
+        if c in s: s = s.replace(c, trans[c])
+
+    return (s)
+
+
+
 if (__name__ == '__main__'):
     
     warning("Warning 009 ",[9])
