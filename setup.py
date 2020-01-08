@@ -4,7 +4,14 @@ from setuptools import setup
 
 setup(
     name = "bibulous",
-    py_modules = ['bibulous', 'bibulous_test', 'bibulous_authorextract'],
+    py_modules = ['bibulous',
+                  'bibulous_test',
+                  'bibulous_authorextract',
+                  'bibread',
+                  'bibulous_bib',
+                  'bibulous_profiler',
+                  'bibulous_tools',
+                  'bibulous_bst'],
     version = "1.3.2",
     description = "BibTeX replacement and enhancement",
     author = "Nathan Hagen",
@@ -21,6 +28,8 @@ setup(
         "Topic :: Text Processing :: Markup :: LaTeX",
         "Topic :: Text Processing",
         ],
+    include_package_data=True,
+    zip_ok = False,
     long_description = """\
 A drop-in replacement for BibTeX based on string templates.
 -----------------------------------------------------------

@@ -1,1 +1,8 @@
-bibulous, bibulous_test, bibulous_authorextract
+bibread
+bibulous
+bibulous_authorextract
+bibulous_bib
+bibulous_bst
+bibulous_profiler
+bibulous_test
+bibulous_tools
