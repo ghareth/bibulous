@@ -188,7 +188,7 @@ class Bibdata(object):
     '''
 
     def __init__(self, filename, disable=None, culldata=True, uselocale=None, silent=False, debug=False,\
-                 refresh_extract=False, style = ""):
+                 refresh_extract=False, style = "", options=None):
         
         '''
         Parameters 
@@ -205,6 +205,7 @@ class Bibdata(object):
             Handle different style template file overriding style template in .aux file
         '''
         
+                
         ## On default initialization, we don't want to issue any warnings about "overwriting" the default options. So
         ## if no "default" keyword is given, then turn off warning #9.
         self.disable = [9] if (disable == None)  else disable  
@@ -245,6 +246,7 @@ class Bibdata(object):
         self.implicitly_indexed_vars = ['authorname','editorname'] ## which templates have implicit indexing
         self.namelists = []         ## the namelists defined within the templates
         self.uniquify_vars = {}     ## dict containing all variables calling the "uniquify" operator
+        self.uniquified_vars = {}   # dict of all variabels that have been made unique with an alphabetic numerator
         self.keylist = []           ## "keylist" is just a temporary holding place for the citations
         self.auxfile_list = []      ## a list of *.aux files, for use when citations are inside nested files
         self.style_override = style ## this style will override style file derived from filename 
@@ -267,7 +269,9 @@ class Bibdata(object):
 
         ## Put in default options settings.
         self.options = copy.deepcopy(bibtools.default_options)
-
+        if options is not None:
+            self.options.update(options)
+        
         ## Create two inverse dictionaries for the month names and month abbreviations 
         self.monthnames, self.monthabbrevs = bibtools.generate_inverse_month_names()
 
@@ -288,11 +292,16 @@ class Bibdata(object):
         ## Print out some info on Bibulous and the files it is working on.
         if not silent:
             self.print_filenames()
-
+        
+        generate_cite_dict_later = True
+        
         if self.filedict['aux']:
             self.parse_auxfile(self.filedict['aux'])
             if ('*' in self.citedict):
                 self.culldata = False
+            generate_cite_dict_later = False
+        elif self.filedict['bib']:
+            generate_cite_dict_later = True
 
 
         ## Parsing the style file has to go *before* parsing the BIB file, so that any style options that affect the way
@@ -317,9 +326,10 @@ class Bibdata(object):
             self.specials_list.append('au')
         if ('ed' not in self.specials_list):
             self.specials_list.append('ed')
-
+        print(self.filedict['bib'])
         ## Next, get the list of entrykeys in the database file(s), and compare them against the list of citation keys.
         if self.filedict['bib']:
+            
             if self.citedict and self.options['use_citeextract'] and os.path.exists(self.filedict['extract'])\
                and not refresh_extract:
                 ## Check if the extract file is complete by reading in the database keys and checking against the
@@ -347,6 +357,12 @@ class Bibdata(object):
                     self.searchkeys = list(self.citedict)
                 for f in self.filedict['bib']:
                     self.bib.parse_bibfile(f, self.culldata , self.searchkeys, options = self.options)      ## Parse full .bib file
+                if generate_cite_dict_later: 
+                    self.keylist = list(self.bib.data.keys())
+                    for i,key in enumerate(self.bib.data.keys()):
+                        if (key != 'preamble'):
+                            self.citedict[key] = 1 + i
+                
                 if self.culldata:
                     self.add_crossrefs_to_searchkeys()
                 if ('*' in self.citedict):  ## \nocite{*} forces all entries in a database to be in bibliography
@@ -527,6 +543,12 @@ class Bibdata(object):
             for c in self.citelist:
                 res = self.specials['citelabel'].replace('<citealnum>',alphanums[c])
                 self.bib.data[c]['citelabel'] = res
+                
+        if ('<citenatbib' in self.specials['citelabel']):
+            alphanums = create_alphanum_citelabels(c, self.bibdata, self.citelist)
+            for c in self.citelist:
+                res = self.specials['citelabel'].replace('<citenatbib>',alphanums[c])
+                self.bibdata[c]['citelabel'] = res           
 
         if not write_preamble:
             filehandle = open(filename, 'ab')
@@ -610,7 +632,10 @@ class Bibdata(object):
 
         ## Generate a sortkey for each citation.
         for c in self.citedict:
-            s = self.bib.data[c]['sortkey']
+            try:
+                s = self.bib.data[c]['sortkey']
+            except KeyError:
+                s = self.bib.data[c]['entrykey']
             self.sortlist.append(s)
             self.citelist.append(c)
 
@@ -668,7 +693,7 @@ class Bibdata(object):
         return
 
     ## =============================
-    def format_bibitem(self, citekey, debug=False):
+    def format_bibitem(self, citekey, debug=False, no_bibitem=False):
         '''
         Create the "\bibitem{...}" string to insert into the ".bbl" file.
 
@@ -744,6 +769,9 @@ class Bibdata(object):
             itemstr = r'\bibitem{' + c + '}\n'
         else:
             itemstr = r'\bibitem[' + bibitem_label + ']{' + c + '}\n'
+            
+        if no_bibitem:
+            itemstr = ""
 
         if debug:
             print('Formatting entry "' + citekey + '"')
@@ -1027,7 +1055,9 @@ class Bibdata(object):
         bibres = None
         bstres = None
         
-                  
+        if isinstance(filename, basestring) and '.' not in filename:
+            filename += '.aux'
+
         if isinstance(filename, basestring) and filename.endswith('.aux'):
             auxfile = os.path.normpath(os.path.abspath(filename))
             path = os.path.normpath(os.path.dirname(auxfile))
@@ -1126,6 +1156,8 @@ class Bibdata(object):
             texfile = auxfile[:-4] + '.tex'
         if not extractfile and auxfile:
             extractfile = auxfile[:-4] + '-extract.bib'
+        if not extractfile and bblfile:
+            extractfile = bblfile[:-4] + '-extract.bib'        
 
         ## Now that we have the filenames, build the dictionary of BibTeX-related files.
         self.filedict['bib'] = bibfiles
@@ -1195,7 +1227,7 @@ class Bibdata(object):
         return
 
     ## =============================
-    def insert_specials(self, entrykey):
+    def insert_specials(self, entrykey, specials_list = None):
         '''
         Insert "special" fields into a database entry.
 
@@ -1203,8 +1235,14 @@ class Bibdata(object):
         ----------
         entrykey : str
             The key of the entry to which we want to add special fields.
+            
+        specials_list : list
+            Rather than use the general self.specials_list, method now iterates through 
+            a defined list of specials.
         '''
-
+        if specials_list == None:
+            specials_list = []
+            
         entry = self.bib.data[entrykey]
 
         if ('pages' in entry):
@@ -1217,6 +1255,7 @@ class Bibdata(object):
                 entry['doi'] = 'http://dx.doi.org/' + entry['doi']
 
         ## Define the variables "citekey" and "citenum".
+
         self.bib.data[entrykey]['citekey'] = entrykey
         if self.citedict:
             #ncites = len(self.citedict)
@@ -1524,7 +1563,7 @@ class Bibdata(object):
         else:
             templatestr = self.remove_template_options_brackets(templatestr, bibentry, variables)
 
-        var_options = {}
+        var_options = {'templatekey':templatekey}
 
         ## Go ahead and replace all of the template variables with the corresponding fields.
         for var in variables:
@@ -1991,6 +2030,37 @@ class Bibdata(object):
                     return(newfield)
                 else:
                     return(self.get_indexed_variable(newfield, newindexer, entrykey, options=options))
+            elif indexer.startswith('.format_authorlist(surname_only)'):
+                options1=self.options.copy()
+                options1["namelist_format"]="last_name_only"
+                options1["maxauthors"]=2
+                options1["minauthors"]=1
+                newfield = format_namelist(field, nametype='author', options=options1)
+                newindexer = indexer[32:]
+                if (nelements == 1) or (newindexer == ''):
+                    return(newfield)
+                else:
+                    return(self.get_indexed_variable(newfield, newindexer, entrykey, options=options))
+            elif indexer.startswith('.format_authorlist(surname_only_no_prefix)'):
+                options1=self.options.copy()
+                options1["namelist_format"]="last_name_only_no_prefix"
+                options1["maxauthors"]=2
+                options1["minauthors"]=1
+                newfield = format_namelist(field, nametype='author', options=options1)
+                newindexer = indexer[len('.format_authorlist(surname_only_no_prefix)'):]
+                if (nelements == 1) or (newindexer == ''):
+                    return(newfield)
+                else:
+                    return(self.get_indexed_variable(newfield, newindexer, entrykey, options=options))                
+            elif indexer.startswith('.format_authorlist(surname_long)'):
+                options1=self.options.copy()
+                options1["namelist_format"]="last_name_only"
+                newfield = format_namelist(field, nametype='author', options=options1)
+                newindexer = indexer[32:]
+                if (nelements == 1) or (newindexer == ''):
+                    return(newfield)
+                else:
+                    return(self.get_indexed_variable(newfield, newindexer, entrykey, options=options))             
             elif indexer.startswith('.format_editorlist()'):
                 newfield = format_namelist(field, nametype='editor', options=self.options)
                 newindexer = indexer[20:]
@@ -2073,28 +2143,42 @@ class Bibdata(object):
             elif (index_elements[0] == 'uniquify(a)'):
                 if (options['varname'] not in self.uniquify_vars):
                     self.uniquify_vars[options['varname']] = []
-
+                # create a list of fields that have been made unique
+                # keep a record of the pre-uniqified variable and its resulting variable
+                if (options['varname'] not in self.uniquified_vars):
+                    self.uniquified_vars[options['varname']] = {'newspecial':options['templatekey'],'list':[]}
                 newfield = field
                 if (field in self.uniquify_vars[options['varname']]):
                     q = 1
                     while True:
-                        if (i < 27):
+                        if (q < 27):
                             newfield = field + chr(q+96)               ## 97 == 'a', 98 == 'b', etc.
-                        elif (i < 52):
+                        elif (q < 52):
                             newfield = field + chr(q+96) + chr(q+96)   ## double up if a single append doesn't work
-                        elif (i < 78):
+                        elif (q < 78):
                             newfield = field + chr(q+96) + chr(q+96) + chr(q+96)   ## triple up if necessary
-                        newfield += str(q)
+                        #newfield += str(q)
                         q += 1
                         if (newfield not in self.uniquify_vars[options['varname']]):
                             break
+                    if field not in self.uniquified_vars[options['varname']]['list']:
+                        self.uniquified_vars[options['varname']]['list'].append(field)
                 self.uniquify_vars[options['varname']].append(newfield)
-                print('varname=%s, field=%s, newfield=%s' % (options['varname'], field, newfield))
+                #print('varname=%s, field=%s, newfield=%s' % (options['varname'], field, newfield))
                 if (nelements == 1):
                     return(newfield)
                 else:
                     newindexer = '.'.join(index_elements[1:])
                     return(self.get_indexed_variable(newfield, newindexer, entrykey, options=options))
+                
+            elif indexer.startswith('.stripyear('):
+                newfield = re.search("\(.*",field).group()[1:]
+                if (nelements == 1):
+                    return(newfield)
+                else:
+                    newindexer = '.'.join(index_elements[1:])
+                    return(self.get_indexed_variable(newfield, newindexer, entrykey, options=options))                
+                
             elif indexer.startswith('.if_singular('):
                 match = re.search(r'.if_singular\(.*\)', indexer, re.UNICODE)
                 end_idx = match.end(0)
@@ -3542,7 +3626,7 @@ def str_is_integer(s):
     '''
 
     try:
-        int(s)
+        value = int(s)
         return(True)
     except ValueError:
         return(False)
@@ -3643,7 +3727,42 @@ def toplevel_split(s, splitchar, levels):
 
     return(split_list)
 
+## ===================================
+def get_variable_name_elements(variable):
+    '''
+    Split the variable name into "name" (left-hand-side part), "iterator" (middle part), and "remainder" (the right-
+    hand-side part).
 
+    With these three elements, we will know how to build a template variable inside the implicit loop.
+
+    Parameters
+    ----------
+    variable : str
+        The variable name to be parsed.
+
+    Returns
+    -------
+    var_dict : dict
+        The dictionary containing elements of the variable name, with keys 'varname', 'prefix', 'index', and 'suffix'. \
+        The input variable can be reconstructed with name + '.' + prefix + index + suffix.
+    '''
+
+    varlist = variable.split('.')
+    var_dict = {}
+    var_dict['name'] = varlist[0]
+    var_dict['index'] = ''
+    var_dict['prefix'] = ''
+    var_dict['suffix'] = ''
+
+    for i,piece in enumerate(varlist[1:]):
+        if piece.isdigit() or (piece == 'n') or (piece == 'N'):
+            var_dict['index'] = piece
+        elif (var_dict['index'] == ''):
+            var_dict['prefix'] += piece + '.'
+        else:
+            var_dict['suffix'] += '.' + piece
+
+    return(var_dict)
 
 ## ===================================
 def get_names(entry, templatestr):
@@ -3664,6 +3783,8 @@ def get_names(entry, templatestr):
         The list of names found.
     '''
 
+    ## TODO: currently, the code is tied to using the 'authorname' and 'editorname'. Users should
+    ## have the ability to use whatever names they want. How can we achieve that?
     if ('authorname' in templatestr) and ('authorlist' in entry):
         return(entry['authorlist'])
     elif ('editorname' in templatestr) and ('editorlist' in entry):
@@ -3704,6 +3825,7 @@ def format_namelist(namelist, nametype='author', options=None):
     if ('terse_inits' not in options):  options['terse_inits'] = False
     if ('french_intials' not in options):  options['french_intials'] = False
     if ('period_after_initial' not in options):  options['period_after_initial'] = True
+    if ('ampersand' not in options): options['ampersand'] = False
 
     ## First get all of the options variables needed below, depending on whether the function is operating on a list of
     ## authors or a list of editors. Second, insert "authorlist" into the bibliography database entry so that other
@@ -3730,19 +3852,26 @@ def format_namelist(namelist, nametype='author', options=None):
             continue
 
         ## From the person's name dictionary, create a string of the name in the format desired for the final BBL file.
-        formatted_name = namedict_to_formatted_namestr(person, options=options)
+        formatted_name = namedict_to_formatted_namestr(person, options=options)       
+        if formatted_name[0] == "{" and formatted_name[-1] =="}":
+            formatted_name = formatted_name[1:-1]
+        
         new_namelist.append(formatted_name)
+    if options['ampersand']:
+        joiner = " \\& "
+    else:
+        joiner = " and "
 
     ## Now that we have the complete list of pre-formatted names, we need to join them together into a single string
     ## that can be inserted into the template.
     if (npersons == 1):
         namestr = new_namelist[0]
     elif (npersons == 2):
-        namestr = ' and '.join(new_namelist)
+        namestr = joiner.join(new_namelist)
     elif (npersons > 2) and (npersons <= maxnames):
         ## Make a string in which each person's name is separated by a comma, except the last name, which has a comma
         ## then "and" before the name.
-        namestr = ', '.join(new_namelist[:-1]) + ', and ' + new_namelist[-1]
+        namestr = ', '.join(new_namelist[:-1]) + ',' + joiner + new_namelist[-1]
     elif (npersons > maxnames):
         ## If the number of names in the list exceeds the maximum, then truncate the list to the first "minnames" only,
         ## and add "et al." to the end of the string giving all the names.
@@ -3805,7 +3934,7 @@ def namedict_to_formatted_namestr(namedict, options=None):
             firstname = initialize_name(firstname, options) + '.'
         middlename = initialize_name(middlename, options)
 
-    if middlename:
+    if (middlename != ''):
         if options['terse_inits']:
             frontname = firstname + middlename
             frontname.replace(' ','')
@@ -3829,7 +3958,15 @@ def namedict_to_formatted_namestr(namedict, options=None):
         ## Provide a comma before the first name.
         if (frontname + suffix != ''): frontname = ', ' + frontname
         namestr = prefix + lastname + frontname + suffix
-
+    elif (options['namelist_format'] == 'last_name_only'):
+        if (prefix != ''): prefix = prefix + ' '
+        if (suffix != ''): suffix = ', ' + suffix
+        namestr = prefix + lastname
+    elif (options['namelist_format'] == 'last_name_only_no_prefix'):
+        if (prefix != ''): prefix = prefix + ' '
+        if (suffix != ''): suffix = ', ' + suffix
+        namestr = lastname
+        
     return(namestr)
 
 ## =============================
@@ -3968,6 +4105,7 @@ def create_alphanum_citelabels(bibdata, citelist):
 
 if (__name__ == '__main__'):
     print('sys.argv=', sys.argv)
+    print('cwd: %s'%os.getcwd())
     
     if (os.name == 'posix'):
         user_locale = 'en_US.UTF-8'
@@ -3993,8 +4131,10 @@ if (__name__ == '__main__'):
 
         arg_auxfile = args[0]
         files = arg_auxfile
+        test = False
     else:
         ## Use the test example input.
+        test = True
         arg_bibfile = './test/underscore.bib'
         arg_auxfile = './test/test_underscore.aux'
         arg_bstfile = './templates/underscore.bst'
@@ -4016,11 +4156,12 @@ if (__name__ == '__main__'):
 
     import os, time
     from stat import * # ST_SIZE etc
-            
-    try:
-        st = os.stat(arg_bibfile)
-    except IOError:
-        print ("failed to get information about", arg_bibfile)
-    else:
-        print ("file size:"+str(st[stat.ST_SIZE]))
-        print ("file modified:"+str(time.asctime(time.localtime(st[stat.ST_MTIME]))))
+    
+    if test:      
+        try:        
+            st = os.stat(arg_bibfile)
+        except IOError:
+            print ("failed to get information about", arg_bibfile)
+        else:
+            print ("file size:"+str(st[stat.ST_SIZE]))
+            print ("file modified:"+str(time.asctime(time.localtime(st[stat.ST_MTIME]))))
