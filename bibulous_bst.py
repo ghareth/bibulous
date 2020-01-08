@@ -339,7 +339,7 @@ class Bst(object):
             for key in sorted(self.specials, key=self.specials.get):
                 print('specials.' + key + ': ' + unicode(self.specials[key]))
        
-        print (self.specials)
+
         return
     
     #def get_user_script(self):
