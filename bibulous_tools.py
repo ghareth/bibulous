@@ -5,11 +5,13 @@
 # pylint: max-module-lines=10000
 # See the LICENSE.rst file for licensing information.
 
+from builtins import str as unicode
 
 import platform
 import locale
 import re
 from pprint import pprint
+
 
 ## Put in default options settings.
 
