@@ -12,7 +12,7 @@ import os
 
 from pprint import pprint       # for debugging
 
-import mysql.connector
+#import mysql.connector
 import datetime
 from dateutil.parser import parse as dateparse
 from dateutil.tz import tzutc
@@ -71,7 +71,7 @@ def insert(cur1, data):
     
 if (__name__ == '__main__'):
     
-    cnx = mysql.connector.connect(user='root', password='',host='127.0.0.1', database='MyDB')
+    #cnx = mysql.connector.connect(user='root', password='',host='127.0.0.1', database='MyDB')
     
     arg_bibfile = './test/thiruv.bib'
     
@@ -83,12 +83,12 @@ if (__name__ == '__main__'):
     
 
         
-    cur = cnx.cursor()
+    #cur = cnx.cursor()
     
     #clear(cur)
     
-    insert(cur, data.data)
+    #insert(cur, data.data)
         
-    cur.close()    
-    cnx.commit()
-    cnx.close()
+    #cur.close()    
+    #cnx.commit()
+    #cnx.close()
