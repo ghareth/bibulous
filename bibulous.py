@@ -728,6 +728,13 @@ class Bibdata(object):
             entrytype = 'article'
             entry['entrytype'] = 'article'
             entry['journal'] = 'Proc.\\ SPIE'
+        if entry.get('keywords',False):  # GXB
+            if "Software" in entry['keywords'] and entrytype == 'article':
+                entrytype = 'software'
+            elif "Standard" in entry['keywords'] and entrytype == 'misc':
+                entrytype = 'standard'
+            elif "Magazine" in entry['keywords'] and entrytype == 'article':
+                entrytype = 'magazine'        
 
         if (entrytype in self.bst.bstdict):
             templatestr = self.bst.bstdict[entrytype]
